@@ -1,426 +1,371 @@
 <!doctype html>
 <html lang="th">
 <head>
-  <meta charset="utf-8">
-  <title>Part-time Match | เข้าสู่ระบบ</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8" />
+  <title>Part-time Match — เข้าสู่ระบบ / สมัครสมาชิก</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
-
-    body {
-      font-family: "Prompt", sans-serif;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      margin: 0;
-      height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+    :root{
+      --bg-grad: linear-gradient(135deg,#eef4ff,#dfe9ff 60%, #cfcff7 100%);
+      --card-bg: #ffffff;
+      --primary: #2f5df6;
+      --primary-2: #7a6cff;
+      --muted: #687281;
+      --radius: 14px;
+      --shadow: 0 12px 28px rgba(20,30,60,0.12);
     }
-
-    .auth-card {
-      width: 100%;
-      max-width: 420px;
-      background: #fff;
-      padding: 40px 30px;
-      border-radius: 20px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-      animation: fadeIn 0.4s ease;
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:"Prompt",sans-serif;
+      background:var(--bg-grad);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:28px;
+      color:#1f2937;
     }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    .layout{
+      width:100%;
+      max-width:1100px;
+      display:grid;
+      grid-template-columns: 1fr 480px;
+      gap:28px;
+      align-items:center;
     }
-
-    h2 {
-      text-align: center;
-      color: #333;
-      font-weight: 600;
-      margin-bottom: 25px;
+    .card{
+      background:var(--card-bg);
+      border-radius:var(--radius);
+      padding:34px;
+      box-shadow:var(--shadow);
     }
-
-    label {
-      font-weight: 500;
-      display: block;
-      margin-bottom: 4px;
+    .brand{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+    .logo{
+      width:46px;height:46px;border-radius:10px;
+      background:linear-gradient(135deg,var(--primary),var(--primary-2));
+      display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;
+      box-shadow: 0 6px 16px rgba(60,80,200,0.12);
     }
-
-    input, select {
-      width: 100%;
-      padding: 12px;
-      margin-bottom: 15px;
-      border-radius: 10px;
-      border: 1px solid #ccc;
-      font-size: 15px;
-      transition: 0.2s;
+    h1.title{font-size:20px;margin:0;color:var(--primary);font-weight:700}
+    p.lead{margin:8px 0 18px;color:var(--muted);font-size:14px}
+    .views{display:flex;flex-direction:column;gap:18px}
+    .view{display:none}
+    .view.active{display:block}
+    form .row{display:flex;gap:12px}
+    form .col{flex:1}
+    label{display:block;font-size:13px;color:#374151;margin-bottom:6px;font-weight:500}
+    input, select, textarea{
+      width:100%;padding:12px;border-radius:10px;border:1px solid #e6e9ef;
+      font-size:14px;color:#111827;background:#fff;
+      transition:box-shadow .15s, border-color .15s;
     }
-
-    input:focus, select:focus {
-      border-color: #667eea;
-      box-shadow: 0 0 0 3px rgba(102,126,234,0.2);
-      outline: none;
+    input:focus, select:focus, textarea:focus{
+      outline:none;border-color:rgba(47,93,246,0.9);
+      box-shadow:0 6px 18px rgba(47,93,246,0.06);
     }
-
-    button {
-      width: 100%;
-      padding: 12px;
-      border: none;
-      border-radius: 10px;
-      font-size: 15px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: 0.25s;
+    textarea{min-height:64px;resize:vertical}
+    .actions{display:flex;gap:12px;align-items:center;margin-top:10px}
+    .btn{padding:12px 14px;border-radius:10px;border:none;cursor:pointer;font-weight:600}
+    .btn.primary{background:linear-gradient(90deg,var(--primary),var(--primary-2));color:#fff;flex:1}
+    .btn.ghost{background:transparent;color:var(--primary);text-decoration:underline;font-weight:600;border:none}
+    .foot{text-align:center;margin-top:10px}
+    .hero{
+      display:flex;align-items:center;justify-content:center;
+      height:100%;border-radius:var(--radius);padding:26px;
+      background:linear-gradient(180deg,rgba(255,255,255,0.85),rgba(255,255,255,0.7));
+      box-shadow:0 8px 30px rgba(18,38,80,0.06);
     }
-
-    .btn-primary {
-      background: linear-gradient(90deg, #667eea, #764ba2);
-      color: white;
+    .hero-illustration{width:100%;max-width:380px}
+    .pw-wrap{position:relative}
+    .pw-toggle{
+      position:absolute;right:10px;top:50%;transform:translateY(-50%);
+      background:none;border:none;color:var(--muted);cursor:pointer;font-weight:600
     }
-    .btn-primary:hover {
-      background: linear-gradient(90deg, #5b6dd9, #6a4095);
+    @media (max-width:980px){
+      .layout{grid-template-columns:1fr;padding:12px}
+      .hero{order:-1;margin-bottom:8px}
     }
-
-    .btn-ghost {
-      background: none;
-      color: #667eea;
-      text-decoration: underline;
-      font-size: 14px;
-      margin-top: 6px;
-    }
-    .btn-ghost:hover { color: #4b56d9; }
-
-    .center { text-align: center; margin-top: 8px; }
-    .view { display: none; }
-    .view.active { display: block; }
-
-    #step-email, #step-otp, #step-newpass { animation: fadeIn 0.3s ease-in-out; }
-
-    /* small helper */
-    .muted { color:#666; font-size:13px; margin-top:6px; text-align:center; }
-    .small { font-size:13px; }
   </style>
 </head>
 <body>
-
-  <div class="auth-card">
-
-    <!-- LOGIN -->
-    <div id="view-login" class="view active">
-      <h2>เข้าสู่ระบบ</h2>
-      <form id="formLogin">
-        <label>อีเมล</label>
-        <input id="loginEmail" type="email" required placeholder="you@example.com">
-        <label>รหัสผ่าน</label>
-        <input id="loginPassword" type="password" required placeholder="••••••">
-        <button type="submit" class="btn-primary">เข้าสู่ระบบ</button>
-      </form>
-      <div class="center">
-        <button type="button" id="toRegister" class="btn-ghost">สมัครสมาชิก</button>
-        <button type="button" id="toForgot" class="btn-ghost">ลืมรหัสผ่าน?</button>
-      </div>
-    </div>
-
-    <!-- REGISTER -->
-    <div id="view-register" class="view">
-      <h2>สมัครสมาชิก</h2>
-      <form id="formRegister">
-        <label>อีเมล</label>
-        <input id="regEmail" type="email" required>
-        <label>รหัสผ่าน</label>
-        <input id="regPassword" type="password" required>
-        <label>ประเภทผู้ใช้</label>
-        <select id="regRole" required>
-          <option value="seeker">ผู้หางาน</option>
-          <option value="shop">ร้านค้า</option>
-        </select>
-        <button type="submit" class="btn-primary">สมัครสมาชิก</button>
-      </form>
-      <div class="center">
-        <button type="button" id="backToLogin1" class="btn-ghost">กลับเข้าสู่ระบบ</button>
-      </div>
-    </div>
-
-    <!-- FORGOT PASSWORD -->
-    <div id="view-forgot" class="view">
-      <h2>ลืมรหัสผ่าน</h2>
-
-      <div id="step-email">
-        <label>กรอกอีเมลของคุณ</label>
-        <input id="forgotEmail" type="email" required>
-        <button id="btnSendOtp" type="button" class="btn-primary">ส่งรหัส OTP</button>
-        <div class="center"><button id="backToLogin2" type="button" class="btn-ghost">กลับ</button></div>
-        <div class="muted small">ระบบจะส่งรหัส OTP ให้ผ่านการจำลอง (alert) ในตัวอย่างนี้</div>
+  <div class="layout" role="main">
+    <section class="card" aria-labelledby="authTitle">
+      <div class="brand">
+        <div class="logo">PT</div>
+        <div>
+          <h1 id="authTitle" class="title">Part-time Match</h1>
+          <div class="small">แพลตฟอร์มหางานพาร์ทไทม์ — เร่งการจับคู่แบบเรียลไทม์</div>
+        </div>
       </div>
 
-      <div id="step-otp" style="display:none;">
-        <label>กรอกรหัส OTP ที่คุณได้รับ</label>
-        <input id="otpInput" type="text" maxlength="6" required>
-        <button id="btnVerifyOtp" type="button" class="btn-primary">ยืนยัน OTP</button>
-        <div class="muted">ยังไม่ได้รับรหัสหรือรหัสหมดอายุ? <button id="resendOtp" class="btn-ghost" style="display:inline-block;width:auto">ส่งอีกครั้ง</button></div>
-      </div>
+      <p class="lead">เข้าสู่ระบบ หรือ สร้างบัญชีใหม่ — เลือกบทบาท (ผู้หางาน / ร้านค้า)</p>
 
-      <div id="step-newpass" style="display:none;">
-        <label>ตั้งรหัสผ่านใหม่</label>
-        <input id="newPassword" type="password" required>
-        <button id="btnResetPass" type="button" class="btn-primary">บันทึกรหัสใหม่</button>
-      </div>
-    </div>
+      <div class="views">
+        <!-- LOGIN -->
+        <div id="view-login" class="view active">
+          <form id="formLogin" novalidate>
+            <label>อีเมล</label>
+            <input id="loginEmail" type="email" placeholder="you@example.com" required>
+            <label>รหัสผ่าน</label>
+            <div class="pw-wrap">
+              <input id="loginPassword" type="password" placeholder="••••••••" required>
+              <button type="button" class="pw-toggle" id="toggleLoginPw">แสดง</button>
+            </div>
+            <div class="actions">
+              <button class="btn primary" type="submit">เข้าสู่ระบบ</button>
+              <button type="button" class="btn primary" id="toRegister">สมัครสมาชิก</button>
+            </div>
+            <div class="foot">
+              <button type="button" class="btn ghost" id="toForgot">ลืมรหัสผ่าน?</button>
+            </div>
+          </form>
+        </div>
 
+        <!-- REGISTER -->
+        <div id="view-register" class="view">
+          <form id="formRegister" novalidate>
+            <div class="row">
+              <div class="col">
+                <label>ชื่อ / ชื่อร้าน</label>
+                <input id="regName" type="text" placeholder="ชื่อของคุณ" required>
+              </div>
+              <div class="col">
+                <label>เบอร์โทรศัพท์</label>
+                <input id="regPhone" type="tel" placeholder="0812345678">
+              </div>
+            </div>
+
+            <label>อีเมล</label>
+            <input id="regEmail" type="email" placeholder="you@example.com" required>
+
+            <label>รหัสผ่าน</label>
+            <div class="pw-wrap">
+              <input id="regPassword" type="password" placeholder="อย่างน้อย 6 ตัวอักษร" required>
+              <button type="button" class="pw-toggle" id="toggleRegPw">แสดง</button>
+            </div>
+
+            <label>ที่อยู่</label>
+            <textarea id="regAddress" rows="2" placeholder="ที่อยู่ของคุณหรือร้านค้า"></textarea>
+
+            <label>รายละเอียดเพิ่มเติม</label>
+            <textarea id="regDescription" rows="2" placeholder="คำอธิบายสั้น ๆ เกี่ยวกับคุณหรือร้านค้า"></textarea>
+
+            <label>ประเภทผู้ใช้</label>
+            <select id="regRole" required>
+              <option value="seeker">ผู้หางาน</option>
+              <option value="shop">ร้านค้า</option>
+            </select>
+
+            <label style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:13px;color:#374151;cursor:pointer;">
+              <input id="agreeTos" type="checkbox" style="width:16px;height:16px;accent-color:#2f5df6;margin:0;">
+              <span>ยอมรับเงื่อนไขการใช้งาน</span>
+            </label>
+
+            <div class="actions" style="margin-top:12px">
+              <button class="btn primary" type="submit">สมัครสมาชิก</button>
+              <button type="button" class="btn primary" id="backToLogin1">กลับ</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- FORGOT -->
+        <div id="view-forgot" class="view">
+          <form id="formForgot" novalidate>
+            <div id="step-email">
+              <label>กรอกอีเมลของคุณ</label>
+              <input id="forgotEmail" type="email" placeholder="you@example.com">
+              <div class="actions">
+                <button type="button" class="btn primary" id="btnSendOtp">ส่ง OTP</button>
+                <button type="button" class="btn primary" id="backToLogin2">กลับ</button>
+              </div>
+            </div>
+            <div id="step-otp" style="display:none;margin-top:10px;">
+              <label>กรอก OTP</label>
+              <input id="otpInput" type="text" maxlength="6" placeholder="123456">
+              <div class="actions">
+                <button type="button" class="btn primary" id="btnVerifyOtp">ยืนยัน OTP</button>
+                <button type="button" class="btn ghost" id="resendOtp">ส่งอีกครั้ง</button>
+              </div>
+            </div>
+            <div id="step-newpass" style="display:none;margin-top:10px;">
+              <label>ตั้งรหัสผ่านใหม่</label>
+              <div class="pw-wrap">
+                <input id="newPassword" type="password" placeholder="รหัสผ่านใหม่">
+                <button type="button" class="pw-toggle" id="toggleNewPw">แสดง</button>
+              </div>
+              <div class="actions">
+                <button type="button" class="btn primary" id="btnResetPass">บันทึก</button>
+                <button type="button" class="btn primary" id="backToLogin3">กลับ</button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <aside class="hero" aria-hidden="true">
+      <img class="hero-illustration" src="https://cdn-icons-png.flaticon.com/512/6592/6592852.png" alt="Job search illustration" />
+    </aside>
   </div>
 
   <script>
-    (function(){
-      // ============================
-      // Config & state
-      // ============================
+    (() => {
+      // ==========================
+      // Utility + Local Storage
+      // ==========================
       const USERS_KEY = "pt_users";
-      const SESSION_KEY = "pt_session";
-      let tempOtp = null;
-      let tempEmail = null;
-      let otpExpiresAt = 0; // timestamp when OTP expires (ms)
-      let resendTimeout = null;
-
-      // Simple hash (demo only)
-      const hash = str => {
-        let h = 0;
-        for (let i = 0; i < str.length; i++) h = Math.imul(31, h) + str.charCodeAt(i) | 0;
-        return h.toString();
-      };
-
-      // -----------------------------
-      // DOM elements (explicit)
-      // -----------------------------
-      const viewLogin = document.getElementById('view-login');
-      const viewRegister = document.getElementById('view-register');
-      const viewForgot = document.getElementById('view-forgot');
-
-      const formLogin = document.getElementById('formLogin');
-      const loginEmail = document.getElementById('loginEmail');
-      const loginPassword = document.getElementById('loginPassword');
-
-      const formRegister = document.getElementById('formRegister');
-      const regEmail = document.getElementById('regEmail');
-      const regPassword = document.getElementById('regPassword');
-      const regRole = document.getElementById('regRole');
-
-      const forgotEmail = document.getElementById('forgotEmail');
-      const btnSendOtp = document.getElementById('btnSendOtp');
-      const stepEmail = document.getElementById('step-email');
-      const stepOtp = document.getElementById('step-otp');
-      const stepNewpass = document.getElementById('step-newpass');
-      const otpInput = document.getElementById('otpInput');
-      const btnVerifyOtp = document.getElementById('btnVerifyOtp');
-      const newPassword = document.getElementById('newPassword');
-      const btnResetPass = document.getElementById('btnResetPass');
-      const resendOtpBtn = document.getElementById('resendOtp');
-
-      const toRegisterBtn = document.getElementById('toRegister');
-      const toForgotBtn = document.getElementById('toForgot');
-      const backToLogin1 = document.getElementById('backToLogin1');
-      const backToLogin2 = document.getElementById('backToLogin2');
-
-      // -----------------------------
-      // Helpers: storage
-      // -----------------------------
-      const loadUsers = () => {
-        try { return JSON.parse(localStorage.getItem(USERS_KEY) || "[]"); }
-        catch(e){ return []; }
-      };
+      const SESSION_SEEKER = "pt_seeker_session";
+      const SESSION_SHOP = "pt_shop_session";
+      const $ = id => document.getElementById(id);
+      const loadUsers = () => JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
       const saveUsers = users => localStorage.setItem(USERS_KEY, JSON.stringify(users));
-      const saveSession = email => localStorage.setItem(SESSION_KEY, email);
+      const hash = s => [...s].reduce((h, c) => Math.imul(31, h) + c.charCodeAt(0) | 0, 0).toString();
+      const switchView = id => {
+        document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+        $(id).classList.add("active");
+      };
 
-      // -----------------------------
-      // UI helpers
-      // -----------------------------
-      function showView(id){
-        [viewLogin, viewRegister, viewForgot].forEach(v=>v.classList.remove('active'));
-        if(id === 'view-login') viewLogin.classList.add('active');
-        if(id === 'view-register') viewRegister.classList.add('active');
-        if(id === 'view-forgot') viewForgot.classList.add('active');
-        // when showing forgot, reset steps
-        if(id === 'view-forgot') resetForgotFlow();
+      // ==========================
+      // Redirect if already logged in
+      // ==========================
+      if (localStorage.getItem(SESSION_SHOP)) {
+        window.location.href = "./shop/applications.html";
+      } else if (localStorage.getItem(SESSION_SEEKER)) {
+        window.location.href = "./seeker/matching.html";
       }
 
-      function resetForgotFlow(){
-        // reset OTP state and UI to step-email
-        tempOtp = null; tempEmail = null; otpExpiresAt = 0;
-        stepEmail.style.display = 'block';
-        stepOtp.style.display = 'none';
-        stepNewpass.style.display = 'none';
-        otpInput.value = '';
-        newPassword.value = '';
-        forgotEmail.value = '';
-        enableBtnSend(true);
-      }
-
-      function enableBtnSend(enable){
-        btnSendOtp.disabled = !enable;
-        btnSendOtp.textContent = enable ? 'ส่งรหัส OTP' : 'ส่งอีกครั้ง (รอ 60s)';
-      }
-
-      function startResendCountdown(sec = 60){
-        enableBtnSend(false);
-        let remain = sec;
-        resendTimeout && clearInterval(resendTimeout);
-        resendTimeout = setInterval(()=>{
-          remain--;
-          btnSendOtp.textContent = `ส่งอีกครั้ง (รอ ${remain}s)`;
-          if(remain <= 0){
-            clearInterval(resendTimeout);
-            enableBtnSend(true);
-            btnSendOtp.textContent = 'ส่งรหัส OTP';
-          }
-        },1000);
-      }
-
-      function generateOtp(){
-        return Math.floor(100000 + Math.random() * 900000).toString();
-      }
-
-      // -----------------------------
+      // ==========================
       // LOGIN
-      // -----------------------------
-      formLogin.addEventListener('submit', e=>{
+      // ==========================
+      $("formLogin").addEventListener("submit", e => {
         e.preventDefault();
-        const email = loginEmail.value.trim().toLowerCase();
-        const password = loginPassword.value;
-        if(!email || !password) return alert('กรุณากรอกอีเมลและรหัสผ่าน');
+        const email = $("loginEmail").value.trim().toLowerCase();
+        const pw = $("loginPassword").value.trim();
+        if (!email || !pw) return Swal.fire("⚠️", "กรุณากรอกข้อมูลให้ครบ", "warning");
 
-        const users = loadUsers();
-        const user = users.find(u => u.email === email && u.password_hash === hash(password));
-        if(!user) return alert('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+        const user = loadUsers().find(u => u.email === email && u.password_hash === hash(pw));
+        if (!user) return Swal.fire("❌", "อีเมลหรือรหัสผ่านไม่ถูกต้อง", "error");
 
-        saveSession(user.email);
-        alert('เข้าสู่ระบบสำเร็จ');
-        window.location.href = 'index.html';
+        Swal.fire({
+          icon: "success",
+          title: `ยินดีต้อนรับ ${user.name}`,
+          timer: 1000,
+          showConfirmButton: false,
+        }).then(() => {
+          if (user.role === "shop") {
+            localStorage.setItem(SESSION_SHOP, user.email);
+            location.href = "./shop/applications.html";
+          } else {
+            localStorage.setItem(SESSION_SEEKER, user.email);
+            location.href = "./seeker/matching.html";
+          }
+        });
       });
 
-      // -----------------------------
+      // ==========================
       // REGISTER
-      // -----------------------------
-      formRegister.addEventListener('submit', e=>{
+      // ==========================
+      $("formRegister").addEventListener("submit", e => {
         e.preventDefault();
-        const email = regEmail.value.trim().toLowerCase();
-        const password = regPassword.value;
-        const role = regRole.value;
-        if(!email || !password) return alert('กรุณากรอกข้อมูลให้ครบ');
+        const name = $("regName").value.trim();
+        const email = $("regEmail").value.trim().toLowerCase();
+        const pw = $("regPassword").value.trim();
+        const phone = $("regPhone").value.trim();
+        const address = $("regAddress").value.trim();
+        const desc = $("regDescription").value.trim();
+        const role = $("regRole").value;
+        if (!name || !email || !pw) return Swal.fire("⚠️", "กรุณากรอกข้อมูลให้ครบ", "warning");
+        if (pw.length < 6) return Swal.fire("⚠️", "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร", "warning");
+        if (!$("agreeTos").checked) return Swal.fire("⚠️", "โปรดยอมรับเงื่อนไขการใช้งาน", "warning");
 
         const users = loadUsers();
-        if(users.some(u=>u.email === email)) return alert('อีเมลนี้ถูกใช้แล้ว');
+        if (users.some(u => u.email === email)) return Swal.fire("⚠️", "อีเมลนี้ถูกใช้แล้ว", "warning");
 
         users.push({
-          user_id: Date.now(),
+          id: Date.now(),
+          name,
           email,
-          password_hash: hash(password),
+          password_hash: hash(pw),
           role,
-          name: '',
-          skills: '',
-          address: '',
-          experience: '',
-          phone: '',
-          profile_image: ''
+          phone,
+          address,
+          description: desc,
+          created_at: new Date().toISOString(),
         });
         saveUsers(users);
-        alert('สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ');
-        showView('view-login');
+        Swal.fire("✅", "สมัครสมาชิกสำเร็จ กรุณาเข้าสู่ระบบ", "success").then(() => switchView("view-login"));
       });
 
-      // -----------------------------
-      // FORGOT: send OTP
-      // -----------------------------
-      btnSendOtp.addEventListener('click', ()=>{
-        const email = forgotEmail.value.trim().toLowerCase();
-        if(!email) return alert('กรุณากรอกอีเมล');
+      // ==========================
+      // FORGOT PASSWORD + OTP
+      // ==========================
+      let otp = null, otpEmail = null, exp = 0;
+
+      $("btnSendOtp").onclick = () => {
+        const email = $("forgotEmail").value.trim().toLowerCase();
         const users = loadUsers();
-        const user = users.find(u => u.email === email);
-        if(!user) return alert('ไม่พบอีเมลนี้ในระบบ');
+        if (!users.some(u => u.email === email)) return Swal.fire("❌", "ไม่พบอีเมลนี้ในระบบ", "error");
+        otp = (Math.floor(Math.random() * 900000) + 100000).toString();
+        otpEmail = email;
+        exp = Date.now() + 5 * 60 * 1000;
+        Swal.fire("📩 รหัส OTP ของคุณ", `<b>${otp}</b><br><small>มีอายุ 5 นาที</small>`, "info");
+        $("step-email").style.display = "none";
+        $("step-otp").style.display = "block";
+      };
 
-        // generate OTP and expiry (5 minutes)
-        tempOtp = generateOtp();
-        tempEmail = email;
-        otpExpiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
+      $("btnVerifyOtp").onclick = () => {
+        const val = $("otpInput").value.trim();
+        if (Date.now() > exp) return Swal.fire("หมดเวลา", "OTP หมดอายุแล้ว", "error");
+        if (val !== otp) return Swal.fire("ผิดพลาด", "OTP ไม่ถูกต้อง", "error");
+        $("step-otp").style.display = "none";
+        $("step-newpass").style.display = "block";
+      };
 
-        // simulate send (in production you would call backend)
-        alert(`(จำลองส่งอีเมล) รหัส OTP ของคุณคือ: ${tempOtp} — ใช้ได้ 5 นาที`);
-
-        // show OTP step
-        stepEmail.style.display = 'none';
-        stepOtp.style.display = 'block';
-        stepNewpass.style.display = 'none';
-
-        // prevent immediate resend
-        startResendCountdown(60);
-      });
-
-      // resend OTP button in OTP step
-      resendOtpBtn.addEventListener('click', ()=>{
-        if(!tempEmail){
-          alert('กรุณากรอกอีเมลก่อน');
-          return;
-        }
-        // allow resend only if btnSendOtp is enabled (countdown finished)
-        if(btnSendOtp.disabled){
-          alert('รออีกสักครู่ก่อนส่งใหม่');
-          return;
-        }
-        // generate new OTP and restart expiry countdown
-        tempOtp = generateOtp();
-        otpExpiresAt = Date.now() + 5 * 60 * 1000;
-        alert(`(จำลองส่งอีเมล) รหัส OTP ใหม่: ${tempOtp} — ใช้ได้ 5 นาที`);
-        startResendCountdown(60);
-      });
-
-      // -----------------------------
-      // FORGOT: verify OTP
-      // -----------------------------
-      btnVerifyOtp.addEventListener('click', ()=>{
-        const entered = otpInput.value.trim();
-        if(!entered) return alert('กรุณากรอก OTP');
-        if(!tempOtp || !tempEmail) return alert('ยังไม่ได้ขอรหัส OTP หรือหมดอายุ');
-        if(Date.now() > otpExpiresAt) return alert('รหัส OTP หมดอายุ กรุณาส่งใหม่');
-
-        if(entered === tempOtp){
-          // move to set new password
-          stepOtp.style.display = 'none';
-          stepNewpass.style.display = 'block';
-          alert('ยืนยัน OTP สำเร็จ กรุณาตั้งรหัสผ่านใหม่');
-        } else {
-          alert('OTP ไม่ถูกต้อง');
-        }
-      });
-
-      // -----------------------------
-      // FORGOT: reset password
-      // -----------------------------
-      btnResetPass.addEventListener('click', ()=>{
-        const np = newPassword.value;
-        if(!np || np.length < 4) return alert('กรุณาตั้งรหัสผ่านอย่างน้อย 4 ตัว');
-        if(!tempEmail) return alert('เกิดข้อผิดพลาด โปรดเริ่มใหม่');
-
+      $("btnResetPass").onclick = () => {
+        const np = $("newPassword").value.trim();
+        if (np.length < 6) return Swal.fire("⚠️", "รหัสผ่านต้องมีอย่างน้อย 6 ตัวอักษร", "warning");
         const users = loadUsers();
-        const idx = users.findIndex(u => u.email === tempEmail);
-        if(idx === -1) return alert('ไม่พบบัญชีผู้ใช้ (เกิดข้อผิดพลาด)');
-
-        users[idx].password_hash = hash(np);
+        const user = users.find(u => u.email === otpEmail);
+        if (!user) return Swal.fire("❌", "ไม่พบบัญชีผู้ใช้นี้", "error");
+        user.password_hash = hash(np);
         saveUsers(users);
+        Swal.fire("✅", "เปลี่ยนรหัสผ่านสำเร็จ", "success").then(() => switchView("view-login"));
+      };
 
-        alert('เปลี่ยนรหัสผ่านสำเร็จ! กรุณาเข้าสู่ระบบใหม่');
+      $("resendOtp").onclick = () => {
+        otp = (Math.floor(Math.random() * 900000) + 100000).toString();
+        exp = Date.now() + 5 * 60 * 1000;
+        Swal.fire("📩 ส่ง OTP ใหม่", `<b>${otp}</b><br><small>มีอายุ 5 นาที</small>`, "info");
+      };
 
-        // reset flow & show login
-        resetForgotFlow();
-        showView('view-login');
+      // ==========================
+      // TOGGLE PASSWORD VISIBILITY
+      // ==========================
+      const togglePw = (input, btn) => {
+        const isHidden = input.type === "password";
+        input.type = isHidden ? "text" : "password";
+        btn.textContent = isHidden ? "ซ่อน" : "แสดง";
+      };
+      $("toggleLoginPw").onclick = () => togglePw($("loginPassword"), $("toggleLoginPw"));
+      $("toggleRegPw").onclick = () => togglePw($("regPassword"), $("toggleRegPw"));
+      $("toggleNewPw").onclick = () => togglePw($("newPassword"), $("toggleNewPw"));
+
+      // ==========================
+      // NAVIGATION
+      // ==========================
+      $("toRegister").onclick = () => switchView("view-register");
+      $("toForgot").onclick = () => {
+        $("step-email").style.display = "block";
+        $("step-otp").style.display = "none";
+        $("step-newpass").style.display = "none";
+        switchView("view-forgot");
+      };
+      ["backToLogin1", "backToLogin2", "backToLogin3"].forEach(id => {
+        $(id).onclick = () => switchView("view-login");
       });
-
-      // -----------------------------
-      // View switching buttons
-      // -----------------------------
-      toRegisterBtn.addEventListener('click', ()=> showView('view-register'));
-      toForgotBtn.addEventListener('click', ()=> showView('view-forgot'));
-      backToLogin1.addEventListener('click', ()=> showView('view-login'));
-      backToLogin2.addEventListener('click', ()=> showView('view-login'));
-
-      // initialize
-      showView('view-login');
     })();
   </script>
 </body>

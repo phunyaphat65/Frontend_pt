@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>🤝 การจับคู่แรงงาน | Part-time Match</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- ✅ ใช้สไตล์หลัก -->
+  <link rel="stylesheet" href="../common/css/style.css">
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
+
+    body {
+      font-family: "Prompt", sans-serif;
+      background: #f7f9fc;
+      color: #333;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    /* ---------- Navbar ---------- */
+    .navbar {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+    }
+
+    .navbar h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .nav-right a {
+      color: #fff;
+      text-decoration: none;
+      margin: 0 10px;
+      font-weight: 500;
+      transition: opacity 0.25s;
+    }
+
+    .nav-right a:hover,
+    .nav-right a.active { opacity: 0.8; }
+
+    .btn-logout {
+      background: rgba(255, 255, 255, 0.25);
+      border: none;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    .btn-logout:hover {
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    /* ---------- Container ---------- */
+    .container {
+      max-width: 1000px;
+      margin: 40px auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+      padding: 35px 45px;
+      animation: fadeIn 0.35s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: #333;
+    }
+
+    p {
+      color: #555;
+      margin-bottom: 25px;
+    }
+
+    /* ---------- Matching Section ---------- */
+    .match-container {
+      display: flex;
+      flex-direction: column;
+      gap: 25px;
+    }
+
+    .job-section {
+      background: #fafbff;
+      border-radius: 14px;
+      padding: 22px 24px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.06);
+      transition: 0.25s;
+    }
+
+    .job-section:hover {
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+      transform: translateY(-3px);
+    }
+
+    .job-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+
+    .job-header h3 {
+      font-size: 18px;
+      color: #333;
+      font-weight: 600;
+    }
+
+    .job-header span {
+      font-size: 14px;
+      color: #666;
+    }
+
+    .candidate-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 15px;
+    }
+
+    .candidate-card {
+      border-radius: 12px;
+      background: #fff;
+      padding: 15px;
+      transition: 0.25s;
+      border: 1px solid #e2e8f0;
+    }
+
+    .candidate-card:hover {
+      background: #f8f9ff;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.07);
+    }
+
+    .candidate-card h4 {
+      color: #333;
+      font-size: 16px;
+      margin-bottom: 5px;
+      font-weight: 600;
+    }
+
+    .candidate-card p {
+      color: #555;
+      font-size: 14px;
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+
+    .btn-invite {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 7px 14px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      color: #fff;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-size: 13px;
+      transition: 0.2s;
+    }
+
+    .btn-invite:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .empty-text {
+      text-align: center;
+      color: #888;
+      margin-top: 35px;
+      font-style: italic;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ✅ Navbar -->
+  <nav class="navbar">
+    <div class="nav-left"><h1>Part-time Match (ร้านค้า)</h1></div>
+    <div class="nav-right">
+      <a href="matching.html">หน้าแรก</a>
+      <a href="profile.html">โปรไฟล์</a>
+      <a href="jobs.html">งานของฉัน</a>
+      <a href="applications.html">ใบสมัคร</a>
+      <a href="matching.html" class="active">การจับคู่</a>
+      <a href="reviews.html">รีวิวร้าน</a>
+      <button id="logoutBtn" class="btn-logout">ออกจากระบบ</button>
+    </div>
+  </nav>
+
+  <!-- ✅ Main Content -->
+  <div class="container">
+    <h2>🤝 การจับคู่แรงงานที่เหมาะสม</h2>
+    <p>ระบบจะแนะนำแรงงานที่ตรงกับคุณสมบัติงานของคุณ เช่น ประเภทงาน สถานที่ และช่วงเวลาที่พร้อมทำงาน</p>
+
+    <div id="matchContainer" class="match-container"></div>
+    <p id="emptyMatch" class="empty-text" style="display:none;">ยังไม่มีข้อมูลการจับคู่</p>
+  </div>
+
+  <!-- ✅ Script -->
+  <script src="./js/matching.js"></script>
+</body>
+</html>

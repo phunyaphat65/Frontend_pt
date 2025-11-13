@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>📋 ใบสมัครเข้าทำงาน | ร้านค้า | Part-time Match</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../common/css/style.css">
+
+  <style>
+    body {
+      font-family: "Prompt", sans-serif;
+      background: #f8faff;
+      color: #333;
+      margin: 0;
+    }
+
+    /* ---------- Navbar ---------- */
+    .navbar {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+    }
+
+    .navbar h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .nav-right a {
+      color: white;
+      text-decoration: none;
+      margin: 0 12px;
+      font-weight: 500;
+      transition: opacity 0.2s;
+    }
+
+    .nav-right a:hover,
+    .nav-right a.active { opacity: 0.8; }
+
+    .btn-logout {
+      background: rgba(255, 255, 255, 0.25);
+      border: none;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn-logout:hover { background: rgba(255, 255, 255, 0.35); }
+
+    /* ---------- Page Layout ---------- */
+    .container {
+      max-width: 900px;
+      margin: 50px auto;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      padding: 35px 45px;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+
+    h2 {
+      font-size: 24px;
+      color: #444;
+      font-weight: 600;
+      margin-bottom: 25px;
+      border-bottom: 3px solid #667eea;
+      padding-bottom: 8px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ---------- Application Cards ---------- */
+    .application-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .application-item {
+      background: #fafbff;
+      border: 1px solid #eee;
+      border-radius: 12px;
+      padding: 18px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+      transition: 0.2s;
+    }
+
+    .application-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .app-info strong { font-size: 17px; color: #333; display: block; margin-bottom: 4px; }
+    .app-info span { display: block; color: #666; font-size: 14px; }
+
+    .status {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 13px;
+      font-weight: 500;
+      text-transform: capitalize;
+      letter-spacing: 0.3px;
+    }
+    .status.pending { background: #fff3cd; color: #8a6d3b; }
+    .status.approved { background: #d4edda; color: #155724; }
+    .status.rejected { background: #f8d7da; color: #721c24; }
+
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      align-items: flex-end;
+    }
+
+    .actions button {
+      padding: 6px 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+
+    .btn-approve { background: #28a745; color: #fff; }
+    .btn-approve:hover { background: #218838; }
+
+    .btn-reject { background: #dc3545; color: #fff; }
+    .btn-reject:hover { background: #c82333; }
+
+    .no-app {
+      text-align: center;
+      color: #888;
+      margin-top: 40px;
+      font-style: italic;
+    }
+  </style>
+</head>
+
+<body>
+  <!-- ✅ Navbar -->
+  <nav class="navbar">
+    <div class="nav-left">
+      <h1>Part-time Match (ร้านค้า)</h1>
+    </div>
+    <div class="nav-right">
+      <a href="matching.html">หน้าแรก</a>
+      <a href="profile.html">โปรไฟล์</a>
+      <a href="jobs.html">งานของฉัน</a>
+      <a href="applications.html" class="active">ใบสมัคร</a>
+      <a href="matching.html">การจับคู่</a>
+      <a href="reviews.html">รีวิวร้าน</a>
+      <button id="logoutBtn" class="btn-logout">ออกจากระบบ</button>
+    </div>
+  </nav>
+
+  <!-- ✅ Content -->
+  <div class="container">
+    <h2>📋 ใบสมัครงานทั้งหมด</h2>
+    <div id="appList" class="application-list"></div>
+    <div id="emptyState" class="no-app" style="display:none;">ยังไม่มีใบสมัครเข้ามา</div>
+  </div>
+
+  <script>
+    (() => {
+      const USERS_KEY = "pt_users";
+      const JOBS_KEY = "pt_jobs";
+      const APPS_KEY = "pt_applications";
+      const SESSION_SHOP = "pt_shop_session";
+      const LEGACY_SESSION = "pt_session";
+
+      // 🧭 ตรวจสอบ session
+      const email =
+        localStorage.getItem(SESSION_SHOP) ||
+        localStorage.getItem(LEGACY_SESSION);
+
+      if (!email) {
+        alert("⚠️ กรุณาเข้าสู่ระบบก่อน");
+        window.location.href = "../auth.html";
+        return;
+      }
+
+      const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
+      const shop = users.find(u => u.email === email && u.role === "shop");
+
+      if (!shop) {
+        alert("❌ บัญชีนี้ไม่ใช่ร้านค้า กรุณาเข้าสู่ระบบใหม่");
+        localStorage.removeItem(SESSION_SHOP);
+        window.location.href = "../auth.html";
+        return;
+      }
+
+      const jobs = JSON.parse(localStorage.getItem(JOBS_KEY) || "[]");
+      const applications = JSON.parse(localStorage.getItem(APPS_KEY) || "[]");
+
+      const appList = document.getElementById("appList");
+      const emptyState = document.getElementById("emptyState");
+
+      // 🗂️ ดึงเฉพาะใบสมัครของร้านนี้
+      const shopJobs = jobs.filter(j => j.shop_email === email);
+      const shopJobIds = shopJobs.map(j => j.job_id);
+      const shopApps = applications.filter(a => shopJobIds.includes(a.job_id));
+
+      if (shopApps.length === 0) {
+        emptyState.style.display = "block";
+        return;
+      }
+
+      // 🧾 แสดงใบสมัคร
+      shopApps.forEach(app => {
+        const job = jobs.find(j => j.job_id === app.job_id);
+        const li = document.createElement("div");
+        li.className = "application-item";
+
+        const statusClass =
+          app.status === "approved" ? "approved" :
+          app.status === "rejected" ? "rejected" : "pending";
+
+        li.innerHTML = `
+          <div class="app-info">
+            <strong>${job?.title || "งานไม่ระบุ"}</strong>
+            <span>ผู้สมัคร: ${app.user_email}</span>
+            <span>วันที่สมัคร: ${new Date(app.date_applied).toLocaleDateString("th-TH")}</span>
+            <span>สถานะ: <span class="status ${statusClass}">${translateStatus(app.status)}</span></span>
+          </div>
+          <div class="actions">
+            <button class="btn-approve">อนุมัติ</button>
+            <button class="btn-reject">ปฏิเสธ</button>
+          </div>
+        `;
+
+        const [approveBtn, rejectBtn] = li.querySelectorAll("button");
+        approveBtn.onclick = () => updateStatus(app, "approved");
+        rejectBtn.onclick = () => updateStatus(app, "rejected");
+
+        appList.appendChild(li);
+      });
+
+      function translateStatus(status) {
+        switch (status) {
+          case "approved": return "อนุมัติแล้ว";
+          case "rejected": return "ปฏิเสธ";
+          default: return "รอดำเนินการ";
+        }
+      }
+
+      function updateStatus(app, newStatus) {
+        const confirmMsg = newStatus === "approved"
+          ? "ยืนยันการอนุมัติใบสมัครนี้หรือไม่?"
+          : "ยืนยันการปฏิเสธใบสมัครนี้หรือไม่?";
+
+        if (!confirm(confirmMsg)) return;
+
+        const updatedApps = applications.map(a =>
+          a.app_id === app.app_id ? { ...a, status: newStatus } : a
+        );
+
+        localStorage.setItem(APPS_KEY, JSON.stringify(updatedApps));
+        alert("✅ อัปเดตสถานะเรียบร้อย");
+        window.location.reload();
+      }
+
+      // 🚪 Logout
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        localStorage.removeItem(SESSION_SHOP);
+        localStorage.removeItem(LEGACY_SESSION);
+        window.location.href = "../auth.html";
+      });
+    })();
+  </script>
+</body>
+</html>

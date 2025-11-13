@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>👤 โปรไฟล์ร้านค้า | Part-time Match</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link rel="stylesheet" href="../common/css/style.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
+
+    body {
+      font-family: "Prompt", sans-serif;
+      background: #f7f9fc;
+      margin: 0;
+      min-height: 100vh;
+      color: #333;
+    }
+
+    /* ---------- Navbar ---------- */
+    .navbar {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+    }
+
+    .navbar h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0;
+    }
+
+    .nav-right a {
+      color: #fff;
+      text-decoration: none;
+      margin: 0 12px;
+      font-weight: 500;
+      transition: opacity 0.2s;
+    }
+    .nav-right a:hover,
+    .nav-right a.active { opacity: 0.8; }
+
+    .btn-logout {
+      background: rgba(255, 255, 255, 0.25);
+      border: none;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn-logout:hover {
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    /* ---------- Container ---------- */
+    .container {
+      max-width: 700px;
+      margin: 50px auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+      padding: 35px 45px;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 25px;
+      font-weight: 600;
+    }
+
+    /* ---------- Form ---------- */
+    .profile-form {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    label {
+      font-weight: 500;
+      color: #444;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input:focus, textarea:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102,126,234,0.2);
+      outline: none;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
+
+    .btn-save {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: opacity 0.3s;
+    }
+
+    .btn-save:hover {
+      opacity: 0.9;
+    }
+
+    /* ---------- Popup Modal ---------- */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.45);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      visibility: hidden;
+      opacity: 0;
+      transition: opacity 0.3s ease, visibility 0.3s ease;
+      z-index: 1000;
+    }
+
+    .modal-overlay.active {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .modal-box {
+      background: #fff;
+      padding: 30px 40px;
+      border-radius: 14px;
+      text-align: center;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      animation: popup 0.3s ease;
+    }
+
+    @keyframes popup {
+      from { transform: scale(0.8); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-box h3 {
+      margin: 0;
+      color: #333;
+      font-weight: 600;
+    }
+
+    .modal-box p {
+      color: #666;
+      margin: 8px 0 18px;
+    }
+
+    .modal-box button {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: opacity 0.3s;
+    }
+
+    .modal-box button:hover {
+      opacity: 0.9;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="nav-left"><h1>Part-time Match (ร้านค้า)</h1></div>
+    <div class="nav-right">
+      <a href="matching.html">หน้าแรก</a>
+      <a href="profile.html" class="active">โปรไฟล์</a>
+      <a href="jobs.html">งานของฉัน</a>
+      <a href="applications.html">ใบสมัคร</a>
+      <a href="matching.html">การจับคู่</a>
+      <a href="reviews.html">รีวิวร้าน</a>
+      <button id="logoutBtn" class="btn-logout">ออกจากระบบ</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <h2>👤 โปรไฟล์ร้านค้า</h2>
+
+    <form id="profileForm" class="profile-form">
+      <div>
+        <label>ชื่อร้าน:</label>
+        <input type="text" id="shopName" placeholder="กรอกชื่อร้าน" required>
+      </div>
+
+      <div>
+        <label>อีเมล (ไม่สามารถแก้ไขได้):</label>
+        <input type="email" id="shopEmail" readonly>
+      </div>
+
+      <div>
+        <label>เบอร์โทรศัพท์:</label>
+        <input type="tel" id="shopPhone" placeholder="เช่น 0812345678">
+      </div>
+
+      <div>
+        <label>ที่อยู่:</label>
+        <input type="text" id="shopAddress" placeholder="เช่น 123 ถนนสุขุมวิท เขตคลองเตย กรุงเทพฯ">
+      </div>
+
+      <div>
+        <label>รายละเอียดร้าน:</label>
+        <textarea id="shopDescription" placeholder="บอกรายละเอียดเกี่ยวกับร้านของคุณ..."></textarea>
+      </div>
+
+      <button type="submit" class="btn-save">💾 บันทึกข้อมูล</button>
+    </form>
+  </div>
+
+  <!-- ✅ Popup Modal -->
+  <div class="modal-overlay" id="successModal">
+    <div class="modal-box">
+      <h3>✅ บันทึกข้อมูลเรียบร้อย!</h3>
+      <p>ข้อมูลโปรไฟล์ร้านค้าของคุณได้รับการอัปเดตแล้ว</p>
+      <button id="closeModalBtn">ตกลง</button>
+    </div>
+  </div>
+
+  <script>
+    (() => {
+      const USERS_KEY = "pt_users";
+      const SESSION_SHOP = "pt_shop_session";
+      const LEGACY_SESSION = "pt_session";
+
+      // 🧭 ดึงอีเมลจาก session
+      const email =
+        localStorage.getItem(SESSION_SHOP) ||
+        localStorage.getItem(LEGACY_SESSION);
+
+      if (!email) {
+        alert("⚠️ กรุณาเข้าสู่ระบบก่อน");
+        window.location.href = "../auth.html";
+        return;
+      }
+
+      // 📦 ดึงข้อมูลร้านจาก pt_users
+      const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
+      let shop = users.find(u => u.email === email && u.role === "shop");
+
+      if (!shop) {
+        alert("❌ ไม่พบข้อมูลร้านค้า กรุณาเข้าสู่ระบบใหม่");
+        localStorage.removeItem(SESSION_SHOP);
+        window.location.href = "../auth.html";
+        return;
+      }
+
+      // 🧾 กำหนดค่าเริ่มต้นในฟอร์ม
+      document.getElementById("shopEmail").value = shop.email || "";
+      document.getElementById("shopName").value = shop.name || "";
+      document.getElementById("shopPhone").value = shop.phone || "";
+      document.getElementById("shopAddress").value = shop.address || "";
+      document.getElementById("shopDescription").value = shop.description || "";
+
+      const form = document.getElementById("profileForm");
+      const modal = document.getElementById("successModal");
+      const closeModal = document.getElementById("closeModalBtn");
+
+      // 💾 เมื่อกดบันทึกข้อมูล
+      form.addEventListener("submit", e => {
+        e.preventDefault();
+        const updated = {
+          ...shop,
+          name: document.getElementById("shopName").value.trim(),
+          phone: document.getElementById("shopPhone").value.trim(),
+          address: document.getElementById("shopAddress").value.trim(),
+          description: document.getElementById("shopDescription").value.trim()
+        };
+
+        if (!updated.name || !updated.phone) {
+          alert("กรุณากรอกชื่อร้านและเบอร์โทรให้ครบถ้วน");
+          return;
+        }
+
+        // บันทึกกลับไปยัง pt_users
+        const updatedUsers = users.map(u =>
+          u.email === shop.email ? updated : u
+        );
+        localStorage.setItem(USERS_KEY, JSON.stringify(updatedUsers));
+
+        modal.classList.add("active");
+      });
+
+      // ✅ ปิด popup
+      closeModal.addEventListener("click", () => {
+        modal.classList.remove("active");
+      });
+
+      // 🚪 ออกจากระบบ
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        localStorage.removeItem(SESSION_SHOP);
+        localStorage.removeItem(LEGACY_SESSION);
+        window.location.href = "../auth.html";
+      });
+    })();
+</script>
+</body>
+</html>

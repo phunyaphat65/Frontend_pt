@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>โปรไฟล์ผู้หางาน | Part-time Match</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
+    body {
+      font-family: "Prompt", sans-serif;
+      background: #f6f8fc;
+      margin: 0;
+      min-height: 100vh;
+    }
+    nav {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+    }
+    nav .left a {
+      color: #fff;
+      text-decoration: none;
+      margin-right: 20px;
+      font-weight: 500;
+      transition: opacity .2s;
+    }
+    nav .left a:hover { opacity: .8; }
+    nav button {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      border-radius: 8px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    nav button:hover { background: rgba(255,255,255,0.35); }
+
+    .container {
+      max-width: 850px;
+      margin: 40px auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      padding: 30px 40px;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 { color: #333; margin-bottom: 25px; font-weight: 600; text-align: center; }
+
+    .profile-pic { text-align: center; margin-bottom: 25px; }
+    .profile-pic img {
+      width: 130px; height: 130px;
+      border-radius: 50%; object-fit: cover;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+    }
+    .upload-btn {
+      display: block; margin: 10px auto;
+      color: #667eea; cursor: pointer;
+      font-size: 14px; text-decoration: underline;
+      border: none; background: none;
+    }
+    label { font-weight: 500; margin-bottom: 6px; display: block; color: #444; }
+    input, textarea {
+      width: 100%; padding: 12px;
+      border-radius: 10px; border: 1px solid #ccc;
+      font-size: 15px; margin-bottom: 15px;
+      transition: border .2s, box-shadow .2s;
+    }
+    input:focus, textarea:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102,126,234,0.2);
+      outline: none;
+    }
+    button.save-btn {
+      width: 100%; padding: 12px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      border: none; color: white;
+      font-size: 16px; border-radius: 10px;
+      cursor: pointer; font-weight: 500;
+      transition: opacity .25s;
+    }
+    button.save-btn:hover { opacity: .9; }
+
+    #map {
+      width: 100%; height: 300px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+    }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <div class="left">
+      <a href="profile.html" style="text-decoration:underline;">โปรไฟล์</a>
+      <a href="jobs.html">ค้นหางาน</a>
+      <a href="applications.html">ใบสมัคร</a>
+      <a href="matching.html">การจับคู่</a>
+      <a href="reviews.html">รีวิว</a>
+    </div>
+    <button id="logoutBtn">ออกจากระบบ</button>
+  </nav>
+
+  <div class="container">
+    <h2>โปรไฟล์ของฉัน</h2>
+
+    <div class="profile-pic">
+      <img id="previewImg" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="Profile">
+      <input type="file" id="profileImageInput" accept="image/*" style="display:none">
+      <button class="upload-btn" id="uploadBtn">เปลี่ยนรูปภาพ</button>
+    </div>
+
+    <form id="profileForm">
+      <label>ชื่อ - นามสกุล</label>
+      <input type="text" id="name" placeholder="ชื่อของคุณ" required>
+
+      <label>อีเมล (ไม่สามารถแก้ไขได้)</label>
+      <input type="email" id="email" disabled>
+
+      <label>เบอร์โทรศัพท์</label>
+      <input type="tel" id="phone" placeholder="เช่น 0812345678" pattern="0[0-9]{9}">
+
+      <label>ที่อยู่ (สามารถลากหมุดเพื่อเปลี่ยนตำแหน่งได้)</label>
+      <textarea id="address" rows="2" placeholder="ที่อยู่ของคุณ"></textarea>
+      <div id="map"></div>
+
+      <label>ทักษะ / ความสามารถ</label>
+      <textarea id="skills" rows="2" placeholder="เช่น เสิร์ฟอาหาร, แคชเชียร์"></textarea>
+
+      <label>ประสบการณ์ทำงาน</label>
+      <textarea id="experience" rows="2" placeholder="เช่น เคยทำงานร้านกาแฟ 6 เดือน"></textarea>
+
+      <button type="submit" class="save-btn">💾 บันทึกข้อมูล</button>
+    </form>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    (() => {
+      const USERS_KEY = "pt_users";
+      const SESSION_KEY = "pt_seeker_session";
+
+      let map, marker;
+      let currentLat = 13.7563, currentLng = 100.5018;
+
+      // 🗺 โหลด Google Maps
+      function initMap() {
+        map = new google.maps.Map(document.getElementById("map"), {
+          center: { lat: currentLat, lng: currentLng },
+          zoom: 13,
+        });
+        marker = new google.maps.Marker({
+          position: { lat: currentLat, lng: currentLng },
+          map,
+          draggable: true,
+        });
+        marker.addListener('dragend', () => {
+          const pos = marker.getPosition();
+          currentLat = pos.lat();
+          currentLng = pos.lng();
+        });
+      }
+
+      function getCurrentUser() {
+        const email = localStorage.getItem(SESSION_KEY);
+        if (!email) return null;
+        const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
+        return users.find(u => u.email === email && u.role === "seeker");
+      }
+
+      function saveUser(updatedUser) {
+        const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
+        const idx = users.findIndex(u => u.email === updatedUser.email);
+        if (idx !== -1) {
+          users[idx] = updatedUser;
+          localStorage.setItem(USERS_KEY, JSON.stringify(users));
+        }
+      }
+
+      const user = getCurrentUser();
+      if (!user) {
+        Swal.fire("กรุณาเข้าสู่ระบบก่อน", "", "warning").then(() => {
+          window.location.href = "../auth.html";
+        });
+        return;
+      }
+
+      const previewImg = document.getElementById('previewImg');
+      const uploadBtn = document.getElementById('uploadBtn');
+      const fileInput = document.getElementById('profileImageInput');
+
+      // 🧠 โหลดข้อมูลผู้ใช้
+      document.getElementById('email').value = user.email || "";
+      document.getElementById('name').value = user.name || "";
+      document.getElementById('phone').value = user.phone || "";
+      document.getElementById('address').value = user.address || "";
+      document.getElementById('skills').value = user.skills || "";
+      document.getElementById('experience').value = user.experience || "";
+      if (user.profile_image) previewImg.src = user.profile_image;
+      if (user.lat && user.lng) { currentLat = user.lat; currentLng = user.lng; }
+
+      uploadBtn.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = () => { previewImg.src = reader.result; };
+          reader.readAsDataURL(file);
+        }
+      });
+
+      // 💾 บันทึกข้อมูล
+      document.getElementById('profileForm').addEventListener('submit', e => {
+        e.preventDefault();
+
+        const phone = document.getElementById('phone').value.trim();
+        if (phone && !/^0\d{9}$/.test(phone)) {
+          Swal.fire("เบอร์โทรศัพท์ไม่ถูกต้อง", "กรุณากรอกให้ครบ 10 หลัก", "warning");
+          return;
+        }
+
+        const updated = {
+          ...user,
+          name: document.getElementById('name').value.trim(),
+          phone,
+          address: document.getElementById('address').value.trim(),
+          skills: document.getElementById('skills').value.trim(),
+          experience: document.getElementById('experience').value.trim(),
+          profile_image: previewImg.src,
+          lat: currentLat,
+          lng: currentLng,
+        };
+        saveUser(updated);
+
+        Swal.fire("✅ บันทึกข้อมูลเรียบร้อย!", "", "success");
+      });
+
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        Swal.fire({
+          title: "ออกจากระบบ?",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonText: "ใช่, ออกจากระบบ",
+          cancelButtonText: "ยกเลิก"
+        }).then(res => {
+          if (res.isConfirmed) {
+            localStorage.removeItem(SESSION_KEY);
+            window.location.href = "../auth.html";
+          }
+        });
+      });
+
+      window.initMap = initMap;
+    })();
+  </script>
+
+  <script async
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBhOq2e2YYl308urG4HnTDRr4pqKdv8jhE&callback=initMap">
+  </script>
+</body>
+</html>

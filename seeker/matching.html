@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>การจับคู่งาน | Part-time Match</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../common/css/style.css">
+  <style>
+    body {
+      background: #f6f8fc;
+      font-family: "Prompt", sans-serif;
+      margin: 0;
+      min-height: 100vh;
+    }
+
+    nav {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+    }
+
+    nav .left a {
+      color: #fff;
+      text-decoration: none;
+      margin-right: 20px;
+      font-weight: 500;
+      transition: opacity .2s;
+    }
+
+    nav .left a.active {
+      text-decoration: underline;
+      opacity: 0.85;
+    }
+
+    nav button {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      border-radius: 8px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      padding: 30px 40px;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .matching-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .matching-header h2 {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 6px;
+    }
+
+    .matching-header p {
+      color: #666;
+      font-size: 15px;
+    }
+
+    .job-card {
+      background: #f9faff;
+      border: 1px solid #e2e6f3;
+      border-radius: 15px;
+      padding: 20px 25px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: transform .2s, box-shadow .2s;
+    }
+
+    .job-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    }
+
+    .job-info {
+      flex: 1;
+      margin-right: 20px;
+    }
+
+    .job-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 4px;
+    }
+
+    .job-shop {
+      font-size: 14px;
+      color: #777;
+      margin-bottom: 6px;
+    }
+
+    .job-desc {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.4;
+      margin-bottom: 8px;
+    }
+
+    .job-meta {
+      font-size: 13px;
+      color: #777;
+    }
+
+    .job-actions button {
+      margin-left: 10px;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background .2s, transform .2s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      color: white;
+    }
+    .btn-primary:hover { opacity: 0.9; }
+
+    .btn-outline {
+      background: white;
+      color: #667eea;
+      border: 1px solid #667eea;
+    }
+    .btn-outline:hover {
+      background: #f0f2ff;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: #666;
+      font-size: 15px;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+  <nav>
+    <div class="left">
+      <a href="profile.html">โปรไฟล์</a>
+      <a href="jobs.html">ค้นหางาน</a>
+      <a href="applications.html">ใบสมัคร</a>
+      <a href="matching.html" class="active">การจับคู่</a>
+      <a href="reviews.html">รีวิว</a>
+    </div>
+    <button id="logoutBtn">ออกจากระบบ</button>
+  </nav>
+
+  <div class="container">
+    <div class="matching-header">
+      <h2>🎯 งานที่เหมาะกับคุณ</h2>
+      <p>ระบบแนะนำงานพาร์ทไทม์ที่ใกล้เคียงกับทักษะและประสบการณ์ของคุณ</p>
+    </div>
+
+    <div id="matchList"></div>
+    <div id="emptyState" class="empty-state" style="display:none;">
+      <p>ยังไม่มีงานที่ตรงกับคุณในตอนนี้</p>
+    </div>
+  </div>
+
+  <script src="../common/js/utils.js"></script>
+  <script src="../common/js/storage.js"></script>
+
+  <script>
+    (() => {
+      const SESSION_SEEKER = "pt_seeker_session";
+      const SESSION_SHOP   = "pt_shop_session";
+      const email = localStorage.getItem(SESSION_SEEKER) || localStorage.getItem(SESSION_SHOP);
+
+      if (!email) {
+        alert("กรุณาเข้าสู่ระบบก่อน");
+        window.location.href = "../auth.html";
+        return;
+      }
+
+
+      const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
+      const user = users.find(u => u.email === email);
+      if (!user) {
+        alert("ไม่พบข้อมูลผู้ใช้");
+        localStorage.removeItem(SESSION_KEY);
+        window.location.href = "../auth.html";
+        return;
+      }
+
+      const jobs = JSON.parse(localStorage.getItem(JOBS_KEY) || "[]");
+
+      // 🔍 Matching Logic — simple but effective
+      const matchedJobs = jobs.filter(job => {
+        const skillMatch = user.skills && job.skills
+          ? job.skills.some(s => user.skills.toLowerCase().includes(s.toLowerCase()))
+          : false;
+
+        const expMatch = user.experience && job.experience
+          ? user.experience.toLowerCase().includes(job.experience.toLowerCase())
+          : false;
+
+        return skillMatch || expMatch;
+      });
+
+      if (matchedJobs.length === 0) {
+        emptyState.style.display = "block";
+        return;
+      }
+
+      matchedJobs.forEach(job => {
+        const div = document.createElement('div');
+        div.className = 'job-card';
+        div.innerHTML = `
+          <div class="job-info">
+            <div class="job-title">${job.title}</div>
+            <div class="job-shop">${job.shop_name}</div>
+            <div class="job-desc">${job.description || "ไม่มีรายละเอียด"}</div>
+            <div class="job-meta">📍 ${job.location} · 💰 ${job.salary} บาท/ชั่วโมง</div>
+          </div>
+          <div class="job-actions">
+            <button class="btn-outline" onclick="viewDetails('${job.job_id}')">รายละเอียด</button>
+            <button class="btn-primary" onclick="applyJob('${job.job_id}')">สมัครงาน</button>
+          </div>
+        `;
+        matchList.appendChild(div);
+      });
+
+      // 🔹 ฟังก์ชันดูรายละเอียดงาน
+      window.viewDetails = jobId => {
+        alert("เปิดรายละเอียดงาน ID: " + jobId);
+        // TODO: redirect ไป job-details.html หรือเปิด modal
+      };
+
+      // 🔹 ฟังก์ชันสมัครงาน
+      window.applyJob = jobId => {
+        const apps = JSON.parse(localStorage.getItem(APPS_KEY) || "[]");
+        if (apps.some(a => a.job_id === jobId && a.user_email === email)) {
+          alert("คุณได้สมัครงานนี้แล้ว");
+          return;
+        }
+
+        apps.push({
+          app_id: Date.now(),
+          job_id: jobId,
+          user_email: email,
+          status: "pending",
+          date_applied: new Date().toISOString()
+        });
+
+        localStorage.setItem(APPS_KEY, JSON.stringify(apps));
+        alert("สมัครงานเรียบร้อย ✅");
+      };
+
+      // 🔹 Logout
+      document.getElementById('logoutBtn').addEventListener('click', () => {
+        localStorage.removeItem(SESSION_KEY);
+        window.location.href = "../auth.html";
+      });
+    })();
+  </script>
+</body>
+</html>

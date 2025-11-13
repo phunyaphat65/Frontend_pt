@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>รีวิวร้าน / งาน | Part-time Match</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../common/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body {
+      font-family: "Prompt", sans-serif;
+      background: #f6f8fc;
+      margin: 0;
+    }
+
+    nav {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+    }
+
+    nav .left a {
+      color: #fff;
+      text-decoration: none;
+      margin-right: 20px;
+      font-weight: 500;
+      transition: opacity .2s;
+    }
+
+    nav .left a:hover { opacity: .8; }
+    nav .left .active { text-decoration: underline; }
+
+    nav button {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      border-radius: 8px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    nav button:hover { background: rgba(255,255,255,0.35); }
+
+    .container {
+      max-width: 850px;
+      margin: 40px auto;
+      background: #fff;
+      padding: 30px 40px;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      animation: fadeIn .4s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      font-weight: 600;
+      text-align: center;
+      color: #333;
+      margin-bottom: 25px;
+    }
+
+    form {
+      margin-bottom: 35px;
+    }
+
+    label {
+      display: block;
+      font-weight: 500;
+      color: #444;
+      margin-bottom: 6px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      margin-bottom: 15px;
+      transition: border .2s, box-shadow .2s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102,126,234,0.15);
+      outline: none;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 10px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      color: #fff;
+      font-size: 15px;
+      cursor: pointer;
+      transition: opacity .25s;
+    }
+
+    button:hover { opacity: .9; }
+
+    .review-card {
+      background: #fafbff;
+      border: 1px solid #eee;
+      border-radius: 12px;
+      padding: 15px 20px;
+      margin-bottom: 15px;
+      transition: box-shadow .25s;
+    }
+
+    .review-card:hover {
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+    }
+
+    .review-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .review-user {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .review-rating {
+      color: #f6b93b;
+      font-size: 16px;
+    }
+
+    .review-comment {
+      color: #555;
+      line-height: 1.5;
+      margin-bottom: 6px;
+    }
+
+    .review-date {
+      font-size: 13px;
+      color: #777;
+    }
+
+    .empty {
+      text-align: center;
+      color: #777;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="left">
+      <a href="profile.html">โปรไฟล์</a>
+      <a href="jobs.html">ค้นหางาน</a>
+      <a href="applications.html">ใบสมัคร</a>
+      <a href="matching.html">การจับคู่</a>
+      <a href="reviews.html" class="active">รีวิว</a>
+    </div>
+    <button id="logoutBtn">ออกจากระบบ</button>
+  </nav>
+
+  <div class="container">
+    <h2>📝 รีวิวร้าน / งานที่คุณเคยสมัคร</h2>
+
+    <form id="reviewForm">
+      <label for="shopSelect">เลือกร้าน / งาน</label>
+      <select id="shopSelect" required></select>
+
+      <label for="rating">ให้คะแนน</label>
+      <select id="rating" required>
+        <option value="">-- เลือกคะแนน --</option>
+        <option value="5">⭐⭐⭐⭐⭐ ดีมาก</option>
+        <option value="4">⭐⭐⭐⭐ ดี</option>
+        <option value="3">⭐⭐⭐ พอใช้</option>
+        <option value="2">⭐⭐ แย่เล็กน้อย</option>
+        <option value="1">⭐ แย่มาก</option>
+      </select>
+
+      <label for="comment">ความคิดเห็นเพิ่มเติม</label>
+      <textarea id="comment" rows="3" placeholder="บอกความรู้สึกหลังทำงาน..."></textarea>
+
+      <button type="submit">ส่งรีวิว</button>
+    </form>
+
+    <h2>💬 รีวิวทั้งหมดของคุณ</h2>
+    <div id="reviewList"></div>
+    <div id="emptyState" class="empty" style="display:none;">ยังไม่มีรีวิวของคุณ</div>
+  </div>
+
+  <script>
+  (() => {
+    const USERS_KEY = "pt_users";
+    const JOBS_KEY = "pt_jobs";
+    const REVIEWS_KEY = "pt_reviews";
+    const APPS_KEY = "pt_applications";
+    const SESSION_KEY = "pt_seeker_session"; // ✅ ใช้ session ที่ถูกต้องสำหรับ seeker
+
+    const email = localStorage.getItem(SESSION_KEY);
+    if (!email) {
+      Swal.fire("กรุณาเข้าสู่ระบบก่อน", "", "warning").then(() => {
+        window.location.href = "../auth.html";
+      });
+      return;
+    }
+
+    const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
+    const user = users.find(u => u.email === email && u.role === "seeker");
+    if (!user) {
+      Swal.fire("ไม่พบข้อมูลผู้ใช้", "กรุณาเข้าสู่ระบบใหม่", "error").then(() => {
+        localStorage.removeItem(SESSION_KEY);
+        window.location.href = "../auth.html";
+      });
+      return;
+    }
+
+    const jobs = JSON.parse(localStorage.getItem(JOBS_KEY) || "[]");
+    const apps = JSON.parse(localStorage.getItem(APPS_KEY) || "[]");
+    const reviews = JSON.parse(localStorage.getItem(REVIEWS_KEY) || "[]");
+
+    const shopSelect = document.getElementById("shopSelect");
+    const reviewList = document.getElementById("reviewList");
+    const emptyState = document.getElementById("emptyState");
+
+    const myApps = apps.filter(a => a.user_email === email);
+    const myReviews = reviews.filter(r => r.user_email === email);
+
+    // 🏪 เติมรายการร้าน/งาน
+    if (myApps.length === 0) {
+      shopSelect.innerHTML = `<option value="">คุณยังไม่มีงานที่สมัคร</option>`;
+      shopSelect.disabled = true;
+    } else {
+      shopSelect.innerHTML = myApps.map(app => {
+        const job = jobs.find(j => j.job_id === app.job_id);
+        return job ? `<option value="${job.job_id}">${job.title} (${job.shop_name})</option>` : "";
+      }).join("");
+    }
+
+    // 💬 แสดงรีวิวของผู้ใช้ (เรียงล่าสุดก่อน)
+    if (myReviews.length === 0) {
+      emptyState.style.display = "block";
+    } else {
+      reviewList.innerHTML = myReviews
+        .sort((a, b) => new Date(b.date) - new Date(a.date))
+        .map(r => `
+          <div class="review-card">
+            <div class="review-header">
+              <div class="review-user">${r.shop_name || "ร้านไม่ระบุ"}</div>
+              <div class="review-rating">${"⭐".repeat(r.rating)}</div>
+            </div>
+            <div class="review-comment">${r.comment || "-"}</div>
+            <div class="review-date">${new Date(r.date).toLocaleDateString("th-TH")}</div>
+          </div>
+        `).join("");
+    }
+
+    // 📝 บันทึกรีวิวใหม่
+    document.getElementById("reviewForm").addEventListener("submit", e => {
+      e.preventDefault();
+      const jobId = shopSelect.value;
+      const rating = parseInt(document.getElementById("rating").value);
+      const comment = document.getElementById("comment").value.trim();
+
+      if (!jobId || !rating) {
+        Swal.fire("กรุณาเลือกงานและให้คะแนน", "", "warning");
+        return;
+      }
+
+      // ❌ ป้องกันรีวิวซ้ำ
+      if (reviews.find(r => r.user_email === email && r.job_id === jobId)) {
+        Swal.fire("คุณได้รีวิวงานนี้ไปแล้ว", "", "info");
+        return;
+      }
+
+      const job = jobs.find(j => j.job_id === jobId);
+      const newReview = {
+        id: Date.now(),
+        job_id: jobId,
+        user_email: email,
+        shop_name: job?.shop_name || "ไม่ระบุ",
+        job_title: job?.title || "งานไม่ระบุ",
+        rating,
+        comment,
+        date: new Date().toISOString()
+      };
+
+      reviews.push(newReview);
+      localStorage.setItem(REVIEWS_KEY, JSON.stringify(reviews));
+
+      Swal.fire("ส่งรีวิวเรียบร้อย ✅", "", "success").then(() => {
+        window.location.reload();
+      });
+    });
+
+    // 🚪 ออกจากระบบ
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      localStorage.removeItem(SESSION_KEY);
+      Swal.fire("ออกจากระบบเรียบร้อย", "", "success").then(() => {
+        window.location.href = "../auth.html";
+      });
+    });
+  })();
+  </script>
+</body>
+</html>

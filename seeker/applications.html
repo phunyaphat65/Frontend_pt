@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>ใบสมัครของฉัน | Part-time Match</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
+    body {
+      font-family: "Prompt", sans-serif;
+      background: #f6f8fc;
+      margin: 0;
+      min-height: 100vh;
+    }
+    nav {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+    }
+    nav .left a {
+      color: #fff;
+      text-decoration: none;
+      margin-right: 20px;
+      font-weight: 500;
+      transition: opacity .2s;
+    }
+    nav .left a:hover { opacity: .8; }
+    nav button {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      border-radius: 8px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    nav button:hover { background: rgba(255,255,255,0.35); }
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      padding: 30px 40px;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 30px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    .application-card {
+      background: #f9faff;
+      border: 1px solid #e2e6f3;
+      border-radius: 15px;
+      padding: 20px 25px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: transform .2s, box-shadow .2s;
+    }
+    .application-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+    }
+    .job-info { flex: 1; }
+    .job-info h3 {
+      margin: 0 0 5px;
+      color: #333;
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .job-info p {
+      margin: 2px 0;
+      color: #555;
+      font-size: 14px;
+    }
+    .status {
+      font-weight: 500;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 13px;
+      display: inline-block;
+      text-align: center;
+      min-width: 110px;
+    }
+    .status.pending { background: #fff7e6; color: #b58500; }
+    .status.approved { background: #e8f9f0; color: #2f8f4e; }
+    .status.rejected { background: #ffeaea; color: #d03c3c; }
+    button.cancel-btn {
+      background: #f0f1ff;
+      border: none;
+      color: #444;
+      border-radius: 8px;
+      padding: 8px 14px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all .2s;
+      margin-left: 10px;
+    }
+    button.cancel-btn:hover {
+      background: #e0e2ff;
+      color: #222;
+    }
+    .no-data {
+      text-align: center;
+      color: #888;
+      font-size: 15px;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <div class="left">
+      <a href="profile.html">โปรไฟล์</a>
+      <a href="jobs.html">ค้นหางาน</a>
+      <a href="applications.html" style="font-weight:600;text-decoration:underline;">ใบสมัคร</a>
+      <a href="matching.html">การจับคู่</a>
+      <a href="reviews.html">รีวิว</a>
+    </div>
+    <button id="logoutBtn">ออกจากระบบ</button>
+  </nav>
+
+  <div class="container">
+    <h2>📄 ใบสมัครของฉัน</h2>
+    <div id="applicationsList"></div>
+  </div>
+
+  <!-- SweetAlert -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script>
+    (function() {
+      // 🔑 คีย์ LocalStorage
+      const SESSION_SEEKER = "pt_seeker_session";
+      const SESSION_SHOP   = "pt_shop_session";
+      const APPS_KEY       = "pt_applications";
+      const listContainer  = document.getElementById("applicationsList");
+
+      // 🧭 ตรวจสอบการเข้าสู่ระบบ
+      const email = localStorage.getItem(SESSION_SEEKER) || localStorage.getItem(SESSION_SHOP);
+      if (!email) {
+        Swal.fire({
+          icon: "warning",
+          title: "ยังไม่ได้เข้าสู่ระบบ",
+          text: "กรุณาเข้าสู่ระบบก่อนเข้าใช้งาน",
+          confirmButtonText: "ตกลง"
+        }).then(() => window.location.href = "../auth.html");
+        return;
+      }
+
+      // 📥 โหลดใบสมัครทั้งหมดของผู้ใช้
+      function loadApplications() {
+        const apps = JSON.parse(localStorage.getItem(APPS_KEY) || "[]");
+        return apps.filter(a => a.applicant === email);
+      }
+
+      // 📤 แสดงผลใบสมัคร
+      function renderApplications() {
+        const apps = loadApplications();
+        listContainer.innerHTML = "";
+
+        if (apps.length === 0) {
+          listContainer.innerHTML = `<p class="no-data fade-in">คุณยังไม่มีใบสมัครงาน</p>`;
+          return;
+        }
+
+        apps.sort((a,b)=> new Date(b.date) - new Date(a.date));
+
+        apps.forEach(app => {
+          const card = document.createElement("div");
+          card.className = "application-card fade-in";
+
+          const info = document.createElement("div");
+          info.className = "job-info";
+          info.innerHTML = `
+            <h3>${app.job_title}</h3>
+            <p>สถานที่: ${app.location || "-"}</p>
+            <p>วันที่สมัคร: ${new Date(app.date).toLocaleDateString('th-TH')}</p>
+          `;
+
+          const right = document.createElement("div");
+          const status = document.createElement("span");
+          status.className = "status " + app.status;
+          status.textContent = 
+            app.status === "pending" ? "⏳ รอดำเนินการ" :
+            app.status === "approved" ? "✅ ผ่านการพิจารณา" :
+            "❌ ไม่ผ่าน";
+
+          right.appendChild(status);
+
+          if (app.status === "pending") {
+            const cancelBtn = document.createElement("button");
+            cancelBtn.className = "cancel-btn";
+            cancelBtn.textContent = "ยกเลิก";
+            cancelBtn.onclick = () => cancelApplication(app.id);
+            right.appendChild(cancelBtn);
+          }
+
+          card.appendChild(info);
+          card.appendChild(right);
+          listContainer.appendChild(card);
+        });
+      }
+
+      // ❌ ฟังก์ชันยกเลิกใบสมัคร
+      function cancelApplication(id) {
+        Swal.fire({
+          title: "ยืนยันการยกเลิก?",
+          text: "คุณแน่ใจว่าต้องการยกเลิกใบสมัครนี้หรือไม่?",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "ใช่, ยกเลิกเลย",
+          cancelButtonText: "ไม่"
+        }).then(result => {
+          if (result.isConfirmed) {
+            let apps = JSON.parse(localStorage.getItem(APPS_KEY) || "[]");
+            apps = apps.filter(a => a.id !== id);
+            localStorage.setItem(APPS_KEY, JSON.stringify(apps));
+            renderApplications();
+            Swal.fire("ยกเลิกแล้ว", "คุณได้ยกเลิกใบสมัครเรียบร้อย", "success");
+          }
+        });
+      }
+
+      // 🚪 ออกจากระบบ
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        Swal.fire({
+          title: "ออกจากระบบ?",
+          text: "คุณแน่ใจหรือไม่?",
+          icon: "question",
+          showCancelButton: true,
+          confirmButtonText: "ออกจากระบบ",
+          cancelButtonText: "ยกเลิก"
+        }).then(result => {
+          if (result.isConfirmed) {
+            localStorage.removeItem(SESSION_SEEKER);
+            localStorage.removeItem(SESSION_SHOP);
+            Swal.fire("ออกจากระบบสำเร็จ", "", "success").then(() => {
+              window.location.href = "../auth.html";
+            });
+          }
+        });
+      });
+
+      // 🧾 โหลดข้อมูลตอนเริ่มต้น
+      renderApplications();
+    })();
+  </script>
+</body>
+</html>

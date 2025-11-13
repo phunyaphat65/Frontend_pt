@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>⭐ รีวิวร้านของฉัน | Part-time Match</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="../common/css/style.css">
+
+  <style>
+    body {
+      font-family: "Prompt", sans-serif;
+      background: #f8faff;
+      color: #333;
+      margin: 0;
+    }
+
+    .navbar {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+    }
+
+    .navbar h1 {
+      margin: 0;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .nav-right a {
+      color: white;
+      text-decoration: none;
+      margin: 0 12px;
+      font-weight: 500;
+      transition: opacity 0.2s;
+    }
+
+    .nav-right a:hover,
+    .nav-right a.active { opacity: 0.8; }
+
+    .btn-logout {
+      background: rgba(255, 255, 255, 0.25);
+      border: none;
+      color: white;
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn-logout:hover { background: rgba(255, 255, 255, 0.35); }
+
+    .container {
+      max-width: 750px;
+      margin: 50px auto;
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+      padding: 35px 45px;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .review-summary {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .review-summary h2 {
+      font-size: 24px;
+      color: #444;
+      margin-bottom: 10px;
+    }
+
+    .average-rating {
+      font-size: 28px;
+      font-weight: 700;
+      color: #f6b93b;
+    }
+
+    .review-card {
+      background: #fafbff;
+      border: 1px solid #eee;
+      border-radius: 12px;
+      padding: 18px 20px;
+      margin-bottom: 15px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.05);
+      transition: 0.2s;
+    }
+
+    .review-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+
+    .review-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .review-user {
+      font-weight: 600;
+      color: #333;
+    }
+
+    .review-rating {
+      color: #f6b93b;
+      font-size: 16px;
+    }
+
+    .review-comment {
+      color: #555;
+      line-height: 1.5;
+      margin-bottom: 5px;
+    }
+
+    .review-date {
+      font-size: 13px;
+      color: #777;
+    }
+
+    .empty {
+      text-align: center;
+      color: #888;
+      font-style: italic;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+    <div class="nav-left">
+      <h1>Part-time Match (ร้านค้า)</h1>
+    </div>
+    <div class="nav-right">
+      <a href="matching.html">หน้าแรก</a>
+      <a href="profile.html">โปรไฟล์</a>
+      <a href="jobs.html">งานของฉัน</a>
+      <a href="applications.html">ใบสมัคร</a>
+      <a href="matching.html">การจับคู่</a>
+      <a href="reviews.html" class="active">รีวิวร้าน</a>
+      <button id="logoutBtn" class="btn-logout">ออกจากระบบ</button>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="review-summary">
+      <h2>⭐ รีวิวร้านของฉัน</h2>
+      <div id="avgRating" class="average-rating">--</div>
+      <p id="totalReviews" class="text-muted"></p>
+    </div>
+
+    <div id="reviewList"></div>
+    <div id="emptyState" class="empty" style="display:none;">ยังไม่มีรีวิวจากผู้สมัคร</div>
+  </div>
+
+  <script>
+    (() => {
+      const USERS_KEY = "pt_users";
+      const REVIEWS_KEY = "pt_reviews";
+      const SESSION_SHOP = "pt_shop_session";
+      const LEGACY_SESSION = "pt_session";
+
+      // 🧭 ตรวจสอบการเข้าสู่ระบบ
+      const email =
+        localStorage.getItem(SESSION_SHOP) ||
+        localStorage.getItem(LEGACY_SESSION);
+
+      if (!email) {
+        alert("⚠️ กรุณาเข้าสู่ระบบก่อน");
+        window.location.href = "../auth.html";
+        return;
+      }
+
+      const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
+      const shop = users.find(u => u.email === email && u.role === "shop");
+
+      if (!shop) {
+        alert("❌ ไม่พบข้อมูลร้านค้า กรุณาเข้าสู่ระบบใหม่");
+        localStorage.removeItem(SESSION_SHOP);
+        window.location.href = "../auth.html";
+        return;
+      }
+
+      // 📦 โหลดข้อมูลรีวิวทั้งหมดของร้านนี้
+      const allReviews = JSON.parse(localStorage.getItem(REVIEWS_KEY) || "[]");
+      const myReviews = allReviews.filter(r => r.shopEmail === email);
+
+      const reviewList = document.getElementById("reviewList");
+      const emptyState = document.getElementById("emptyState");
+      const avgRatingEl = document.getElementById("avgRating");
+      const totalReviewsEl = document.getElementById("totalReviews");
+
+      // 🧮 ถ้ามีรีวิวให้แสดง
+      if (myReviews.length > 0) {
+        emptyState.style.display = "none";
+        reviewList.innerHTML = "";
+
+        let sum = 0;
+        myReviews.forEach(r => {
+          sum += r.rating;
+
+          const card = document.createElement("div");
+          card.className = "review-card";
+          card.innerHTML = `
+            <div class="review-header">
+              <div class="review-user">👤 ${r.seekerEmail || "ไม่ระบุชื่อ"}</div>
+              <div class="review-rating">⭐ ${r.rating}</div>
+            </div>
+            <div class="review-comment">${r.comment || "-"}</div>
+            <div class="review-date">${new Date(r.date).toLocaleDateString("th-TH", {
+              year: "numeric",
+              month: "short",
+              day: "numeric"
+            })}</div>
+          `;
+          reviewList.appendChild(card);
+        });
+
+        const avg = (sum / myReviews.length).toFixed(1);
+        avgRatingEl.textContent = `⭐ ${avg}`;
+        totalReviewsEl.textContent = `จำนวนรีวิวทั้งหมด ${myReviews.length} รายการ`;
+      } else {
+        avgRatingEl.textContent = "--";
+        totalReviewsEl.textContent = "ยังไม่มีรีวิว";
+        emptyState.style.display = "block";
+      }
+
+      // 🚪 ออกจากระบบ
+      document.getElementById("logoutBtn").addEventListener("click", () => {
+        localStorage.removeItem(SESSION_SHOP);
+        localStorage.removeItem(LEGACY_SESSION);
+        window.location.href = "../auth.html";
+      });
+    })();
+  </script>
+</body>
+</html>
