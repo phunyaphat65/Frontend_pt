@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>💼 รายการงาน | Part-time Match</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: "Prompt", sans-serif;
+      background: #f6f8fb;
+      margin: 0;
+      color: #333;
+    }
+
+    nav {
+      background: #5264f9;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 30px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    nav a, nav button {
+      color: #fff;
+      text-decoration: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+      margin: 0 8px;
+      transition: 0.2s;
+    }
+
+    nav a:hover, nav button:hover { text-decoration: underline; }
+
+    .container {
+      max-width: 900px;
+      margin: 50px auto;
+      background: #fff;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      color: #5264f9;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #5264f9;
+      padding-bottom: 8px;
+    }
+
+    form {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    input, textarea {
+      font-family: inherit;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      width: 100%;
+      font-size: 14px;
+    }
+
+    button {
+      background: #5264f9;
+      color: #fff;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: 0.2s;
+    }
+
+    button:hover { background: #4054f6; }
+
+    .job-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .job-item {
+      background: #f8f9ff;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      animation: fadeIn 0.3s ease;
+      transition: 0.2s;
+    }
+
+    .job-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 3px 8px rgba(0,0,0,0.08);
+    }
+
+    .job-item h3 {
+      margin: 0;
+      color: #5264f9;
+    }
+
+    .job-item p { margin: 5px 0; font-size: 14px; color: #555; }
+
+    .actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn-danger {
+      background: #e74c3c;
+    }
+
+    .btn-danger:hover {
+      background: #c0392b;
+    }
+
+    .no-jobs {
+      text-align: center;
+      color: #888;
+      font-style: italic;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <div>
+      <a href="index.html">🏠 หน้าแรก</a>
+      <a href="profile.html">👤 โปรไฟล์</a>
+      <a href="applications.html">📋 ใบสมัคร</a>
+      <a href="reviews.html">⭐ รีวิว</a>
+    </div>
+    <button onclick="logout()">ออกจากระบบ</button>
+  </nav>
+
+  <div class="container">
+    <h2>เพิ่มงานใหม่</h2>
+    <form id="addJobForm">
+      <input name="title" placeholder="ชื่องาน" required>
+      <input name="wage" placeholder="ค่าจ้างต่อชั่วโมง (บาท)" type="number" min="1" required>
+      <textarea name="description" placeholder="รายละเอียดงาน"></textarea>
+      <button type="submit">➕ เพิ่มงาน</button>
+    </form>
+
+    <h2>งานทั้งหมดของฉัน</h2>
+    <ul class="job-list" id="myJobs"></ul>
+  </div>
+
+  <script>
+    // ===============================
+    // LocalStorage Database Mock
+    // ===============================
+    const SESSION_KEY = "pt_session";
+    const USERS_KEY = "pt_users";
+    const JOBS_KEY = "pt_jobs";
+
+    function getCurrentUser() {
+      const email = localStorage.getItem(SESSION_KEY);
+      if (!email) return null;
+      const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
+      return users.find(u => u.email === email) || null;
+    }
+
+    const user = getCurrentUser();
+    if (!user) {
+      alert("กรุณาเข้าสู่ระบบก่อน");
+      location.href = "auth.html";
+    }
+
+    function logout() {
+      localStorage.removeItem(SESSION_KEY);
+      alert("ออกจากระบบเรียบร้อย");
+      location.href = "auth.html";
+    }
+
+    // ===============================
+    // จัดการงาน
+    // ===============================
+    function loadJobs() {
+      return JSON.parse(localStorage.getItem(JOBS_KEY) || "[]");
+    }
+
+    function saveJobs(jobs) {
+      localStorage.setItem(JOBS_KEY, JSON.stringify(jobs));
+    }
+
+    const form = document.getElementById("addJobForm");
+    const jobList = document.getElementById("myJobs");
+
+    form.addEventListener("submit", e => {
+      e.preventDefault();
+      const jobs = loadJobs();
+      const job = {
+        id: Date.now(),
+        title: form.title.value.trim(),
+        wage: form.wage.value.trim(),
+        description: form.description.value.trim(),
+        owner: user.email,
+        date: new Date().toLocaleDateString("th-TH"),
+      };
+      jobs.push(job);
+      saveJobs(jobs);
+      form.reset();
+      renderJobs();
+      alert("เพิ่มงานเรียบร้อยแล้ว ✅");
+    });
+
+    function renderJobs() {
+      const jobs = loadJobs().filter(j => j.owner === user.email);
+      jobList.innerHTML = "";
+
+      if (jobs.length === 0) {
+        jobList.innerHTML = `<p class="no-jobs">ยังไม่มีงานในระบบ</p>`;
+        return;
+      }
+
+      jobs.forEach(job => {
+        const li = document.createElement("li");
+        li.className = "job-item";
+        li.innerHTML = `
+          <h3>${job.title}</h3>
+          <p>💰 ค่าจ้าง: ${job.wage} บาท/ชม.</p>
+          <p>🗓 วันที่โพสต์: ${job.date}</p>
+          <p>${job.description || "ไม่มีรายละเอียดเพิ่มเติม"}</p>
+          <div class="actions">
+            <button class="btn-danger" onclick="deleteJob(${job.id})">ลบงาน</button>
+          </div>
+        `;
+        jobList.appendChild(li);
+      });
+    }
+
+    function deleteJob(id) {
+      if (!confirm("ต้องการลบงานนี้หรือไม่?")) return;
+      let jobs = loadJobs();
+      jobs = jobs.filter(j => j.id !== id);
+      saveJobs(jobs);
+      renderJobs();
+    }
+
+    renderJobs();
+  </script>
+</body>
+</html>

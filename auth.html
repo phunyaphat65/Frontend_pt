@@ -1,0 +1,427 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>Part-time Match | เข้าสู่ระบบ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
+
+    body {
+      font-family: "Prompt", sans-serif;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 420px;
+      background: #fff;
+      padding: 40px 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      text-align: center;
+      color: #333;
+      font-weight: 600;
+      margin-bottom: 25px;
+    }
+
+    label {
+      font-weight: 500;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 15px;
+      border-radius: 10px;
+      border: 1px solid #ccc;
+      font-size: 15px;
+      transition: 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102,126,234,0.2);
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-size: 15px;
+      cursor: pointer;
+      font-weight: 500;
+      transition: 0.25s;
+    }
+
+    .btn-primary {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      color: white;
+    }
+    .btn-primary:hover {
+      background: linear-gradient(90deg, #5b6dd9, #6a4095);
+    }
+
+    .btn-ghost {
+      background: none;
+      color: #667eea;
+      text-decoration: underline;
+      font-size: 14px;
+      margin-top: 6px;
+    }
+    .btn-ghost:hover { color: #4b56d9; }
+
+    .center { text-align: center; margin-top: 8px; }
+    .view { display: none; }
+    .view.active { display: block; }
+
+    #step-email, #step-otp, #step-newpass { animation: fadeIn 0.3s ease-in-out; }
+
+    /* small helper */
+    .muted { color:#666; font-size:13px; margin-top:6px; text-align:center; }
+    .small { font-size:13px; }
+  </style>
+</head>
+<body>
+
+  <div class="auth-card">
+
+    <!-- LOGIN -->
+    <div id="view-login" class="view active">
+      <h2>เข้าสู่ระบบ</h2>
+      <form id="formLogin">
+        <label>อีเมล</label>
+        <input id="loginEmail" type="email" required placeholder="you@example.com">
+        <label>รหัสผ่าน</label>
+        <input id="loginPassword" type="password" required placeholder="••••••">
+        <button type="submit" class="btn-primary">เข้าสู่ระบบ</button>
+      </form>
+      <div class="center">
+        <button type="button" id="toRegister" class="btn-ghost">สมัครสมาชิก</button>
+        <button type="button" id="toForgot" class="btn-ghost">ลืมรหัสผ่าน?</button>
+      </div>
+    </div>
+
+    <!-- REGISTER -->
+    <div id="view-register" class="view">
+      <h2>สมัครสมาชิก</h2>
+      <form id="formRegister">
+        <label>อีเมล</label>
+        <input id="regEmail" type="email" required>
+        <label>รหัสผ่าน</label>
+        <input id="regPassword" type="password" required>
+        <label>ประเภทผู้ใช้</label>
+        <select id="regRole" required>
+          <option value="seeker">ผู้หางาน</option>
+          <option value="shop">ร้านค้า</option>
+        </select>
+        <button type="submit" class="btn-primary">สมัครสมาชิก</button>
+      </form>
+      <div class="center">
+        <button type="button" id="backToLogin1" class="btn-ghost">กลับเข้าสู่ระบบ</button>
+      </div>
+    </div>
+
+    <!-- FORGOT PASSWORD -->
+    <div id="view-forgot" class="view">
+      <h2>ลืมรหัสผ่าน</h2>
+
+      <div id="step-email">
+        <label>กรอกอีเมลของคุณ</label>
+        <input id="forgotEmail" type="email" required>
+        <button id="btnSendOtp" type="button" class="btn-primary">ส่งรหัส OTP</button>
+        <div class="center"><button id="backToLogin2" type="button" class="btn-ghost">กลับ</button></div>
+        <div class="muted small">ระบบจะส่งรหัส OTP ให้ผ่านการจำลอง (alert) ในตัวอย่างนี้</div>
+      </div>
+
+      <div id="step-otp" style="display:none;">
+        <label>กรอกรหัส OTP ที่คุณได้รับ</label>
+        <input id="otpInput" type="text" maxlength="6" required>
+        <button id="btnVerifyOtp" type="button" class="btn-primary">ยืนยัน OTP</button>
+        <div class="muted">ยังไม่ได้รับรหัสหรือรหัสหมดอายุ? <button id="resendOtp" class="btn-ghost" style="display:inline-block;width:auto">ส่งอีกครั้ง</button></div>
+      </div>
+
+      <div id="step-newpass" style="display:none;">
+        <label>ตั้งรหัสผ่านใหม่</label>
+        <input id="newPassword" type="password" required>
+        <button id="btnResetPass" type="button" class="btn-primary">บันทึกรหัสใหม่</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    (function(){
+      // ============================
+      // Config & state
+      // ============================
+      const USERS_KEY = "pt_users";
+      const SESSION_KEY = "pt_session";
+      let tempOtp = null;
+      let tempEmail = null;
+      let otpExpiresAt = 0; // timestamp when OTP expires (ms)
+      let resendTimeout = null;
+
+      // Simple hash (demo only)
+      const hash = str => {
+        let h = 0;
+        for (let i = 0; i < str.length; i++) h = Math.imul(31, h) + str.charCodeAt(i) | 0;
+        return h.toString();
+      };
+
+      // -----------------------------
+      // DOM elements (explicit)
+      // -----------------------------
+      const viewLogin = document.getElementById('view-login');
+      const viewRegister = document.getElementById('view-register');
+      const viewForgot = document.getElementById('view-forgot');
+
+      const formLogin = document.getElementById('formLogin');
+      const loginEmail = document.getElementById('loginEmail');
+      const loginPassword = document.getElementById('loginPassword');
+
+      const formRegister = document.getElementById('formRegister');
+      const regEmail = document.getElementById('regEmail');
+      const regPassword = document.getElementById('regPassword');
+      const regRole = document.getElementById('regRole');
+
+      const forgotEmail = document.getElementById('forgotEmail');
+      const btnSendOtp = document.getElementById('btnSendOtp');
+      const stepEmail = document.getElementById('step-email');
+      const stepOtp = document.getElementById('step-otp');
+      const stepNewpass = document.getElementById('step-newpass');
+      const otpInput = document.getElementById('otpInput');
+      const btnVerifyOtp = document.getElementById('btnVerifyOtp');
+      const newPassword = document.getElementById('newPassword');
+      const btnResetPass = document.getElementById('btnResetPass');
+      const resendOtpBtn = document.getElementById('resendOtp');
+
+      const toRegisterBtn = document.getElementById('toRegister');
+      const toForgotBtn = document.getElementById('toForgot');
+      const backToLogin1 = document.getElementById('backToLogin1');
+      const backToLogin2 = document.getElementById('backToLogin2');
+
+      // -----------------------------
+      // Helpers: storage
+      // -----------------------------
+      const loadUsers = () => {
+        try { return JSON.parse(localStorage.getItem(USERS_KEY) || "[]"); }
+        catch(e){ return []; }
+      };
+      const saveUsers = users => localStorage.setItem(USERS_KEY, JSON.stringify(users));
+      const saveSession = email => localStorage.setItem(SESSION_KEY, email);
+
+      // -----------------------------
+      // UI helpers
+      // -----------------------------
+      function showView(id){
+        [viewLogin, viewRegister, viewForgot].forEach(v=>v.classList.remove('active'));
+        if(id === 'view-login') viewLogin.classList.add('active');
+        if(id === 'view-register') viewRegister.classList.add('active');
+        if(id === 'view-forgot') viewForgot.classList.add('active');
+        // when showing forgot, reset steps
+        if(id === 'view-forgot') resetForgotFlow();
+      }
+
+      function resetForgotFlow(){
+        // reset OTP state and UI to step-email
+        tempOtp = null; tempEmail = null; otpExpiresAt = 0;
+        stepEmail.style.display = 'block';
+        stepOtp.style.display = 'none';
+        stepNewpass.style.display = 'none';
+        otpInput.value = '';
+        newPassword.value = '';
+        forgotEmail.value = '';
+        enableBtnSend(true);
+      }
+
+      function enableBtnSend(enable){
+        btnSendOtp.disabled = !enable;
+        btnSendOtp.textContent = enable ? 'ส่งรหัส OTP' : 'ส่งอีกครั้ง (รอ 60s)';
+      }
+
+      function startResendCountdown(sec = 60){
+        enableBtnSend(false);
+        let remain = sec;
+        resendTimeout && clearInterval(resendTimeout);
+        resendTimeout = setInterval(()=>{
+          remain--;
+          btnSendOtp.textContent = `ส่งอีกครั้ง (รอ ${remain}s)`;
+          if(remain <= 0){
+            clearInterval(resendTimeout);
+            enableBtnSend(true);
+            btnSendOtp.textContent = 'ส่งรหัส OTP';
+          }
+        },1000);
+      }
+
+      function generateOtp(){
+        return Math.floor(100000 + Math.random() * 900000).toString();
+      }
+
+      // -----------------------------
+      // LOGIN
+      // -----------------------------
+      formLogin.addEventListener('submit', e=>{
+        e.preventDefault();
+        const email = loginEmail.value.trim().toLowerCase();
+        const password = loginPassword.value;
+        if(!email || !password) return alert('กรุณากรอกอีเมลและรหัสผ่าน');
+
+        const users = loadUsers();
+        const user = users.find(u => u.email === email && u.password_hash === hash(password));
+        if(!user) return alert('อีเมลหรือรหัสผ่านไม่ถูกต้อง');
+
+        saveSession(user.email);
+        alert('เข้าสู่ระบบสำเร็จ');
+        window.location.href = 'index.html';
+      });
+
+      // -----------------------------
+      // REGISTER
+      // -----------------------------
+      formRegister.addEventListener('submit', e=>{
+        e.preventDefault();
+        const email = regEmail.value.trim().toLowerCase();
+        const password = regPassword.value;
+        const role = regRole.value;
+        if(!email || !password) return alert('กรุณากรอกข้อมูลให้ครบ');
+
+        const users = loadUsers();
+        if(users.some(u=>u.email === email)) return alert('อีเมลนี้ถูกใช้แล้ว');
+
+        users.push({
+          user_id: Date.now(),
+          email,
+          password_hash: hash(password),
+          role,
+          name: '',
+          skills: '',
+          address: '',
+          experience: '',
+          phone: '',
+          profile_image: ''
+        });
+        saveUsers(users);
+        alert('สมัครสมาชิกสำเร็จ! กรุณาเข้าสู่ระบบ');
+        showView('view-login');
+      });
+
+      // -----------------------------
+      // FORGOT: send OTP
+      // -----------------------------
+      btnSendOtp.addEventListener('click', ()=>{
+        const email = forgotEmail.value.trim().toLowerCase();
+        if(!email) return alert('กรุณากรอกอีเมล');
+        const users = loadUsers();
+        const user = users.find(u => u.email === email);
+        if(!user) return alert('ไม่พบอีเมลนี้ในระบบ');
+
+        // generate OTP and expiry (5 minutes)
+        tempOtp = generateOtp();
+        tempEmail = email;
+        otpExpiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes
+
+        // simulate send (in production you would call backend)
+        alert(`(จำลองส่งอีเมล) รหัส OTP ของคุณคือ: ${tempOtp} — ใช้ได้ 5 นาที`);
+
+        // show OTP step
+        stepEmail.style.display = 'none';
+        stepOtp.style.display = 'block';
+        stepNewpass.style.display = 'none';
+
+        // prevent immediate resend
+        startResendCountdown(60);
+      });
+
+      // resend OTP button in OTP step
+      resendOtpBtn.addEventListener('click', ()=>{
+        if(!tempEmail){
+          alert('กรุณากรอกอีเมลก่อน');
+          return;
+        }
+        // allow resend only if btnSendOtp is enabled (countdown finished)
+        if(btnSendOtp.disabled){
+          alert('รออีกสักครู่ก่อนส่งใหม่');
+          return;
+        }
+        // generate new OTP and restart expiry countdown
+        tempOtp = generateOtp();
+        otpExpiresAt = Date.now() + 5 * 60 * 1000;
+        alert(`(จำลองส่งอีเมล) รหัส OTP ใหม่: ${tempOtp} — ใช้ได้ 5 นาที`);
+        startResendCountdown(60);
+      });
+
+      // -----------------------------
+      // FORGOT: verify OTP
+      // -----------------------------
+      btnVerifyOtp.addEventListener('click', ()=>{
+        const entered = otpInput.value.trim();
+        if(!entered) return alert('กรุณากรอก OTP');
+        if(!tempOtp || !tempEmail) return alert('ยังไม่ได้ขอรหัส OTP หรือหมดอายุ');
+        if(Date.now() > otpExpiresAt) return alert('รหัส OTP หมดอายุ กรุณาส่งใหม่');
+
+        if(entered === tempOtp){
+          // move to set new password
+          stepOtp.style.display = 'none';
+          stepNewpass.style.display = 'block';
+          alert('ยืนยัน OTP สำเร็จ กรุณาตั้งรหัสผ่านใหม่');
+        } else {
+          alert('OTP ไม่ถูกต้อง');
+        }
+      });
+
+      // -----------------------------
+      // FORGOT: reset password
+      // -----------------------------
+      btnResetPass.addEventListener('click', ()=>{
+        const np = newPassword.value;
+        if(!np || np.length < 4) return alert('กรุณาตั้งรหัสผ่านอย่างน้อย 4 ตัว');
+        if(!tempEmail) return alert('เกิดข้อผิดพลาด โปรดเริ่มใหม่');
+
+        const users = loadUsers();
+        const idx = users.findIndex(u => u.email === tempEmail);
+        if(idx === -1) return alert('ไม่พบบัญชีผู้ใช้ (เกิดข้อผิดพลาด)');
+
+        users[idx].password_hash = hash(np);
+        saveUsers(users);
+
+        alert('เปลี่ยนรหัสผ่านสำเร็จ! กรุณาเข้าสู่ระบบใหม่');
+
+        // reset flow & show login
+        resetForgotFlow();
+        showView('view-login');
+      });
+
+      // -----------------------------
+      // View switching buttons
+      // -----------------------------
+      toRegisterBtn.addEventListener('click', ()=> showView('view-register'));
+      toForgotBtn.addEventListener('click', ()=> showView('view-forgot'));
+      backToLogin1.addEventListener('click', ()=> showView('view-login'));
+      backToLogin2.addEventListener('click', ()=> showView('view-login'));
+
+      // initialize
+      showView('view-login');
+    })();
+  </script>
+</body>
+</html>

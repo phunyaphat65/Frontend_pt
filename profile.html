@@ -2,40 +2,340 @@
 <html lang="th">
 <head>
   <meta charset="utf-8">
-  <title>โปรไฟล์ | Part-time Match</title>
-  <link rel="stylesheet" href="css/style.css">
-  <script type="module">
-    import { load, KS } from './js/storage.js';
+  <title>โปรไฟล์ของฉัน | Part-time Match</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
+    * { box-sizing: border-box; }
 
-    function renderProfile() {
-      const session = JSON.parse(localStorage.getItem('pt_session') || 'null');
-      if (!session) {
-        document.body.innerHTML = '<p>กรุณาเข้าสู่ระบบก่อน</p>';
-        return;
-      }
-      const users = load(KS.USERS);
-      const user = users.find(u => u.id === session.user_id);
-      if (!user) return document.body.innerHTML = '<p>ไม่พบบัญชี</p>';
-
-      let html = `<h1>${user.name}</h1><p>${user.email}</p><p>บทบาท: ${user.role}</p>`;
-
-      if (user.role === 'seeker') {
-        const seekers = load(KS.SEEKERS);
-        const prof = seekers.find(s => s.user_id === user.id);
-        html += `<p>เบอร์โทร: ${prof?.phone || '-'}</p><p>ทักษะ: ${(prof?.skills || []).join(', ')}</p>`;
-      } else if (user.role === 'shop') {
-        const shops = load(KS.SHOPS);
-        const shop = shops.find(s => s.user_id === user.id);
-        html += `<p>ชื่อร้าน: ${shop?.shop_name || '-'}</p><p>รายละเอียด: ${shop?.description || '-'}</p>`;
-      }
-
-      document.getElementById('profile').innerHTML = html;
+    body {
+      font-family: "Prompt", sans-serif;
+      background: #f6f8fb;
+      margin: 0;
+      color: #333;
     }
 
-    renderProfile();
-  </script>
+    nav {
+      background: linear-gradient(90deg, #5264f9, #6a7dfc);
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 30px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    nav a, nav button {
+      color: #fff;
+      text-decoration: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+      margin: 0 8px;
+      transition: 0.2s;
+    }
+
+    nav a:hover, nav button:hover { text-decoration: underline; }
+
+    .profile-container {
+      max-width: 950px;
+      margin: 50px auto;
+      background: #fff;
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 { color: #5264f9; margin-bottom: 25px; }
+
+    .profile-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 25px;
+    }
+
+    .role-tag {
+      background: #eaf0ff;
+      color: #5264f9;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+    }
+
+    .profile-box {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 40px;
+      align-items: center;
+    }
+
+    .photo {
+      flex: 1;
+      text-align: center;
+    }
+
+    .photo img {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      border: 3px solid #d8defc;
+      object-fit: cover;
+      transition: 0.3s;
+    }
+
+    .photo img:hover { transform: scale(1.05); }
+
+    .photo input { display: none; }
+    .photo p { font-size: 14px; color: #777; margin-top: 8px; }
+
+    .info {
+      flex: 2;
+      font-size: 15px;
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+    td { padding: 6px 5px; vertical-align: top; }
+    td:first-child { width: 150px; color: #777; font-weight: 500; }
+
+    .edit-btn {
+      text-align: right;
+      color: #5264f9;
+      cursor: pointer;
+      font-style: italic;
+      margin-bottom: 10px;
+      transition: 0.2s;
+    }
+    .edit-btn:hover { text-decoration: underline; }
+
+    /* popup */
+    .popup {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+    .popup.active { display: flex; }
+
+    .popup-content {
+      background: #fff;
+      padding: 30px;
+      border-radius: 14px;
+      width: 420px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .popup-content h3 { margin-top: 0; color: #5264f9; }
+
+    .popup-content input, .popup-content textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-family: inherit;
+    }
+
+    .popup-content .btn {
+      margin-top: 15px;
+      padding: 8px 14px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      color: #fff;
+      font-size: 14px;
+    }
+
+    .save { background: #27ae60; }
+    .cancel { background: #e74c3c; margin-left: 10px; }
+
+    footer {
+      text-align: center;
+      color: #777;
+      margin-top: 40px;
+      font-size: 13px;
+    }
+  </style>
 </head>
+
 <body>
-  <div id="profile"></div>
+  <nav>
+    <div>
+      <a href="index.html">🏠 หน้าแรก</a>
+      <a href="jobs.html">💼 งาน</a>
+      <a href="applications.html">📋 ใบสมัคร</a>
+      <a href="reviews.html">⭐ รีวิว</a>
+    </div>
+    <button onclick="logout()">ออกจากระบบ</button>
+  </nav>
+
+  <div class="profile-container">
+    <div class="profile-header">
+      <h2>โปรไฟล์ของฉัน</h2>
+      <div id="roleTag" class="role-tag"></div>
+    </div>
+
+    <div class="profile-box">
+      <div class="photo">
+        <label for="uploadPhoto">
+          <img id="profileImage" src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="avatar">
+        </label>
+        <input type="file" id="uploadPhoto" accept="image/*">
+        <p>คลิกเพื่อเปลี่ยนรูปภาพ</p>
+      </div>
+
+      <div class="info">
+        <div class="edit-btn" id="editProfile">(แก้ไขข้อมูล)</div>
+        <table>
+          <tr><td>ชื่อ-นามสกุล :</td><td id="name">-</td></tr>
+          <tr><td>อีเมล :</td><td id="email">-</td></tr>
+          <tr><td>ทักษะ :</td><td id="skills">-</td></tr>
+          <tr><td>ที่อยู่ :</td><td id="address">-</td></tr>
+          <tr><td>ประสบการณ์ :</td><td id="experience">-</td></tr>
+          <tr><td>เบอร์โทร :</td><td id="phone">-</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- popup -->
+  <div class="popup" id="editPopup">
+    <div class="popup-content">
+      <h3>แก้ไขข้อมูลส่วนตัว</h3>
+      <form id="editForm">
+        <label>ชื่อ-นามสกุล</label>
+        <input name="name" required>
+        <label>ทักษะ</label>
+        <input name="skills">
+        <label>ที่อยู่</label>
+        <textarea name="address"></textarea>
+        <label>ประสบการณ์</label>
+        <input name="experience">
+        <label>เบอร์โทร</label>
+        <input name="phone">
+        <div>
+          <button type="submit" class="btn save">💾 บันทึก</button>
+          <button type="button" class="btn cancel" id="cancelEdit">ยกเลิก</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <footer>
+    © 2025 Part-time Match | All Rights Reserved
+  </footer>
+
+  <script>
+    const SESSION_KEY = "pt_session";
+    const USERS_KEY = "pt_users";
+    const PROFILES_KEY = "pt_profiles";
+
+    function getCurrentUser() {
+      const email = localStorage.getItem(SESSION_KEY);
+      if (!email) return null;
+      const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
+      return users.find(u => u.email === email) || null;
+    }
+
+    function getProfile(email) {
+      const profiles = JSON.parse(localStorage.getItem(PROFILES_KEY) || "{}");
+      return profiles[email] || {};
+    }
+
+    function saveProfile(email, data) {
+      const profiles = JSON.parse(localStorage.getItem(PROFILES_KEY) || "{}");
+      profiles[email] = data;
+      localStorage.setItem(PROFILES_KEY, JSON.stringify(profiles));
+    }
+
+    function logout() {
+      localStorage.removeItem(SESSION_KEY);
+      alert("ออกจากระบบเรียบร้อย");
+      location.href = "auth.html";
+    }
+
+    // =========================
+    // โหลดข้อมูลผู้ใช้
+    // =========================
+    const user = getCurrentUser();
+    if (!user) {
+      alert("กรุณาเข้าสู่ระบบก่อน");
+      location.href = "auth.html";
+    }
+
+    const profile = getProfile(user.email);
+    document.getElementById("roleTag").textContent =
+      user.role === "shop" ? "ร้านค้า" : "ผู้หางาน";
+
+    function renderProfile() {
+      document.getElementById('name').textContent = profile.name || "-";
+      document.getElementById('email').textContent = user.email;
+      document.getElementById('skills').textContent = profile.skills || "-";
+      document.getElementById('address').textContent = profile.address || "-";
+      document.getElementById('experience').textContent = profile.experience || "-";
+      document.getElementById('phone').textContent = profile.phone || "-";
+      if (profile.image) document.getElementById('profileImage').src = profile.image;
+    }
+    renderProfile();
+
+    // อัปโหลดรูป
+    document.getElementById('uploadPhoto').addEventListener('change', e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        profile.image = reader.result;
+        saveProfile(user.email, profile);
+        document.getElementById('profileImage').src = reader.result;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    // popup edit
+    const popup = document.getElementById('editPopup');
+    document.getElementById('editProfile').addEventListener('click', () => {
+      popup.classList.add('active');
+      const form = document.getElementById('editForm');
+      form.name.value = profile.name || '';
+      form.skills.value = profile.skills || '';
+      form.address.value = profile.address || '';
+      form.experience.value = profile.experience || '';
+      form.phone.value = profile.phone || '';
+    });
+
+    document.getElementById('cancelEdit').addEventListener('click', () => {
+      popup.classList.remove('active');
+    });
+
+    // ปิด popup ด้วยการคลิกด้านนอก
+    popup.addEventListener('click', e => {
+      if (e.target === popup) popup.classList.remove('active');
+    });
+
+    document.getElementById('editForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const form = e.target;
+      profile.name = form.name.value.trim();
+      profile.skills = form.skills.value.trim();
+      profile.address = form.address.value.trim();
+      profile.experience = form.experience.value.trim();
+      profile.phone = form.phone.value.trim();
+      saveProfile(user.email, profile);
+      popup.classList.remove('active');
+      renderProfile();
+      alert("บันทึกข้อมูลเรียบร้อย ✅");
+    });
+  </script>
 </body>
 </html>

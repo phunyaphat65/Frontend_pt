@@ -1,640 +1,259 @@
 <!doctype html>
 <html lang="th">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Part-time Match — Auth & Dashboard</title>
-  <meta name="description" content="Part-time matching frontend demo — auth + dashboard (seeker & shop). LocalStorage; easy to connect to backend." />
+  <meta charset="utf-8">
+  <title>Part-time Match | หน้าหลัก</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    /* Minimal + Modern Responsive */
-    :root{
-      --bg:#f6f9ff; --card:#ffffff; --muted:#6b7280; --accent:#2563eb; --danger:#ef4444;
-      --radius:12px; --shadow:0 10px 30px rgba(16,24,40,0.08);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: "Prompt", sans-serif;
+      margin: 0;
+      background: #f6f8fb;
+      color: #333;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
-    *{box-sizing:border-box}
-    body{margin:0;background:linear-gradient(180deg,#f8fbff 0%,var(--bg) 100%);color:#0f172a;min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:28px}
-    .wrap{width:100%;max-width:1100px}
-    .top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}
-    h1{font-size:18px;margin:0}
-    .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
-    .grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
-    @media (max-width:900px){ .grid{grid-template-columns:1fr} }
-    form{display:flex;flex-direction:column;gap:10px}
-    input,select,textarea{padding:10px;border-radius:10px;border:1px solid #e6eefc;background:#fff;outline:none}
-    textarea{min-height:80px;resize:vertical}
-    label{font-weight:600;font-size:13px;color:#0f172a}
-    .muted{color:var(--muted);font-size:13px}
-    .actions{display:flex;gap:8px;flex-wrap:wrap}
-    button{background:var(--accent);color:#fff;padding:8px 12px;border-radius:10px;border:0;cursor:pointer;font-weight:600}
-    .btn-ghost{background:transparent;color:var(--accent);border:0;text-decoration:underline;cursor:pointer}
-    .danger{background:var(--danger)}
-    .small{font-size:13px}
-    .hidden{display:none}
-    .msg{padding:10px;border-radius:10px;margin-bottom:10px}
-    .msg.ok{background:#ecfdf5;color:#065f46}
-    .msg.err{background:#fff1f2;color:#991b1b}
-    .job-card{border:1px solid #e8eefc;padding:12px;border-radius:10px;margin-bottom:8px}
-    pre.db{background:#0b1220;color:#f8fafc;padding:12px;border-radius:8px;overflow:auto;max-height:260px}
-    footer{margin-top:18px;text-align:center;color:var(--muted);font-size:13px}
+
+    header {
+      background: linear-gradient(90deg, #5264f9, #6a7dfc);
+      color: #fff;
+      padding: 16px 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 600;
+    }
+
+    nav button {
+      background: rgba(255,255,255,0.15);
+      border: none;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 14px;
+      margin-left: 8px;
+    }
+    nav button:hover { background: rgba(255,255,255,0.3); }
+
+    main {
+      flex: 1;
+      max-width: 1100px;
+      margin: 40px auto;
+      padding: 0 20px;
+      animation: fadeIn 0.4s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .welcome {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      margin-bottom: 25px;
+    }
+
+    .welcome h2 {
+      margin: 0 0 10px;
+      color: #5264f9;
+      font-size: 22px;
+    }
+
+    .welcome p {
+      margin: 0;
+      color: #555;
+    }
+
+    .cards {
+      display: grid;
+      gap: 20px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    }
+
+    .card {
+      background: white;
+      border-radius: 14px;
+      padding: 25px;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+      transition: transform 0.3s, box-shadow 0.3s;
+      position: relative;
+    }
+
+    .card:hover {
+      transform: translateY(-6px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.1);
+    }
+
+    .card h3 {
+      margin-top: 0;
+      color: #5264f9;
+      font-weight: 600;
+    }
+
+    .card p {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.5;
+    }
+
+    .btn-primary {
+      display: inline-block;
+      margin-top: 12px;
+      background: #5264f9;
+      color: white;
+      padding: 8px 14px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.2s;
+      font-size: 14px;
+    }
+    .btn-primary:hover { background: #4054f6; }
+
+    footer {
+      text-align: center;
+      padding: 18px;
+      color: #888;
+      font-size: 14px;
+      background: #fff;
+      border-top: 1px solid #eaeaea;
+      margin-top: auto;
+    }
+
+    .role-tag {
+      display: inline-block;
+      background: #eaf0ff;
+      color: #5264f9;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+      margin-left: 8px;
+    }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="top">
-      <h1>Part-time Match — Auth & Dashboard</h1>
-      <div id="hdrControls"></div>
+
+  <header>
+    <h1>Part-time Match</h1>
+    <nav>
+      <button onclick="goProfile()">โปรไฟล์</button>
+      <button onclick="goJobs()">งาน</button>
+      <button onclick="goApplications()">ใบสมัคร</button>
+      <button onclick="goReviews()">รีวิว</button>
+      <button onclick="logout()">ออกจากระบบ</button>
+    </nav>
+  </header>
+
+  <main>
+    <div class="welcome">
+      <h2>👋 สวัสดี, <span id="userName">ผู้ใช้</span>
+        <span id="userRole" class="role-tag"></span>
+      </h2>
+      <p>ยินดีต้อนรับกลับเข้าสู่ระบบ <b>Part-time Match</b></p>
     </div>
 
-    <div class="grid">
-      <!-- Main column -->
-      <div>
-        <div id="messageArea"></div>
+    <div class="cards" id="dashboardCards"></div>
+  </main>
 
-        <!-- Views container -->
-        <div id="views">
+  <footer>
+    © 2025 Part-time Match | All Rights Reserved
+  </footer>
 
-          <!-- LOGIN -->
-          <div id="view-login" class="card view">
-            <h2 style="margin-top:0">เข้าสู่ระบบ</h2>
-            <form id="formLogin">
-              <label for="loginEmail">อีเมล</label>
-              <input id="loginEmail" type="email" required autocomplete="username" />
-              <label for="loginPassword">รหัสผ่าน</label>
-              <input id="loginPassword" type="password" required autocomplete="current-password" />
-              <div class="actions">
-                <button type="submit">เข้าสู่ระบบ</button>
-                <button type="button" id="toRegister" class="btn-ghost">สมัครสมาชิก</button>
-                <button type="button" id="toForgot" class="btn-ghost">ลืมรหัสผ่าน?</button>
-              </div>
-            </form>
-          </div>
+  <script>
+    // ===============================
+    // ตรวจสอบการเข้าสู่ระบบ
+    // ===============================
+    const SESSION_KEY = "pt_session";
+    const USERS_KEY = "pt_users";
 
-          <!-- REGISTER -->
-          <div id="view-register" class="card view hidden">
-            <h2 style="margin-top:0">สมัครสมาชิก</h2>
-            <form id="formRegister">
-              <label for="regName">ชื่อ - นามสกุล</label>
-              <input id="regName" type="text" required />
-              <label for="regEmail">อีเมล</label>
-              <input id="regEmail" type="email" required autocomplete="email" />
-              <label for="regPassword">รหัสผ่าน</label>
-              <input id="regPassword" type="password" required autocomplete="new-password" />
-              <label for="regPassword2">ยืนยันรหัสผ่าน</label>
-              <input id="regPassword2" type="password" required />
-              <label for="regRole">เลือกบทบาท</label>
-              <select id="regRole">
-                <option value="seeker">ผู้หางาน</option>
-                <option value="shop">ร้านค้า</option>
-              </select>
-              <div class="actions">
-                <button type="submit">ลงทะเบียน</button>
-                <button type="button" id="toLoginFromReg" class="btn-ghost">กลับไปหน้าเข้าสู่ระบบ</button>
-              </div>
-            </form>
-          </div>
+    const email = localStorage.getItem(SESSION_KEY);
+    if (!email) {
+      alert("กรุณาเข้าสู่ระบบก่อน");
+      location.href = "auth.html";
+    }
 
-          <!-- FORGOT -->
-          <div id="view-forgot" class="card view hidden">
-            <h2 style="margin-top:0">ลืมรหัสผ่าน</h2>
-            <form id="formForgot">
-              <label for="forgotEmail">อีเมลที่ลงทะเบียน</label>
-              <input id="forgotEmail" type="email" required />
-              <div class="actions">
-                <button type="submit">ส่งลิงก์รีเซ็ต</button>
-                <button type="button" id="toLoginFromForgot" class="btn-ghost">ยกเลิก</button>
-              </div>
-              <div class="muted small" style="margin-top:8px">ระบบจะแสดงแบบฟอร์มตั้งรหัสผ่านใหม่ให้เมื่ออีเมลถูกต้อง สามารถเชื่อมต่อกับ backend เพื่อส่งอีเมลจริงได้</div>
-            </form>
-          </div>
+    const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
+    const user = users.find(u => u.email === email);
+    if (!user) {
+      alert("ไม่พบข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่");
+      localStorage.removeItem(SESSION_KEY);
+      location.href = "auth.html";
+    }
 
-          <!-- RESET -->
-          <div id="view-reset" class="card view hidden">
-            <h2 style="margin-top:0">ตั้งรหัสผ่านใหม่</h2>
-            <div class="muted small">ตั้งรหัสใหม่สำหรับ: <strong id="resetEmailLabel"></strong></div>
-            <form id="formReset">
-              <label for="resetPassword">รหัสผ่านใหม่</label>
-              <input id="resetPassword" type="password" required />
-              <label for="resetPassword2">ยืนยันรหัสผ่านใหม่</label>
-              <input id="resetPassword2" type="password" required />
-              <div class="actions">
-                <button type="submit">ตั้งรหัสผ่านใหม่</button>
-                <button type="button" id="cancelReset" class="btn-ghost">ยกเลิก</button>
-              </div>
-            </form>
-          </div>
+    // แสดงชื่อหรืออีเมล
+    document.getElementById("userName").textContent = user.name || user.email;
+    document.getElementById("userRole").textContent =
+      user.role === "shop" ? "ร้านค้า" : "ผู้หางาน";
 
-          <!-- DASHBOARD -->
-          <div id="view-dashboard" class="card view hidden">
-            <h2 style="margin-top:0">แดชบอร์ด</h2>
-            <div id="dashboardArea"></div>
-          </div>
-
+    // ===============================
+    // Dashboard Cards แยกตาม role
+    // ===============================
+    const dashboard = document.getElementById("dashboardCards");
+    if (user.role === "seeker") {
+      dashboard.innerHTML = `
+        <div class="card">
+          <h3>🔍 งานใหม่</h3>
+          <p>ดูงานพาร์ทไทม์ล่าสุดที่เหมาะกับคุณ</p>
+          <button class="btn-primary" onclick="goJobs()">ดูงานทั้งหมด</button>
         </div>
-      </div>
-
-      <!-- Right column (profile + debug) -->
-      <div>
-        <div class="card" style="margin-bottom:12px">
-          <h3 style="margin-top:0" class="small">บัญชีปัจจุบัน</h3>
-          <div id="acctBox" class="muted">ยังไม่ล็อกอิน</div>
-          <div style="margin-top:8px" class="actions">
-            <button id="btnLogout" class="hidden">ออกจากระบบ</button>
-            <button id="btnDelete" class="danger hidden">ลบบัญชี (local)</button>
-          </div>
+        <div class="card">
+          <h3>📄 ประวัติการสมัคร</h3>
+          <p>ติดตามสถานะใบสมัครของคุณได้ที่นี่</p>
+          <button class="btn-primary" onclick="goApplications()">ดูใบสมัคร</button>
         </div>
-
-        <!--<div class="card">
-          <h3 style="margin-top:0" class="small">LocalStorage (debug)</h3>
-          <pre id="dbg" class="db"></pre>
-          <div style="margin-top:8px" class="actions">
-            <button id="btnSeed" class="btn-ghost">ตั้งค่าเริ่มต้น (seed)</button>
-            <button id="btnClearAll" class="btn-ghost">ล้างข้อมูลที่ใช้โดยตัวอย่าง</button>
-          </div>
-        </div>-->
-      </div>
-    </div>
-
-    <footer>ออกแบบก่อนจะต่อ backend ได้ง่าย </footer>
-  </div>
-
-<script>
-/* ============================
-  Part-time Match — Frontend only
-  - Single-file: Auth + Dashboard
-  - Storage keys are explicit so you can replace with API calls:
-    KS.USERS, KS.SEEKERS, KS.SHOPS, KS.JOBS, KS.APPS
-  - Password hashed with SHA-256 via Web Crypto before storing
-  - Designed for easy backend integration (replace load/save with fetch)
-   ============================ */
-
-/* ------------------ Storage keys & helpers ------------------ */
-const KS = {
-  USERS: 'pt_users',
-  SEEKERS: 'pt_job_seekers',
-  SHOPS: 'pt_shops',
-  JOBS: 'pt_jobs',
-  APPS: 'pt_applications'
-};
-
-function load(key){ try{ return JSON.parse(localStorage.getItem(key) || '[]'); }catch(e){ return []; } }
-function save(key, data){ localStorage.setItem(key, JSON.stringify(data)); }
-function removeById(key, idField, id){ const arr = load(key).filter(x=>x[idField]!==id); save(key, arr); }
-function uid(prefix='id'){ return prefix + '_' + Math.random().toString(36).slice(2,9); }
-
-/* ------------------ Password hashing ------------------ */
-async function hashPassword(password){
-  const enc = new TextEncoder();
-  const buff = await crypto.subtle.digest('SHA-256', enc.encode(password));
-  return Array.from(new Uint8Array(buff)).map(b=>b.toString(16).padStart(2,'0')).join('');
-}
-
-/* ------------------ Session ------------------ */
-const SESSION_KEY = 'pt_session'; // { user_id, at }
-function setSession(user_id){ localStorage.setItem(SESSION_KEY, JSON.stringify({ user_id, at: Date.now() })); }
-function clearSession(){ localStorage.removeItem(SESSION_KEY); }
-function getSession(){ try{ return JSON.parse(localStorage.getItem(SESSION_KEY)); }catch(e){ return null; } }
-function currentUser(){ const s = getSession(); if(!s) return null; return load(KS.USERS).find(u=>u.id===s.user_id) || null; }
-
-/* ------------------ UI helpers ------------------ */
-const $ = id => document.getElementById(id);
-function showView(id){ document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden')); $(id).classList.remove('hidden'); renderHeader(); }
-function showMessage(text, ok=true){
-  const area = $('messageArea');
-  area.innerHTML = `<div class="msg ${ok? 'ok' : 'err'}">${text}</div>`;
-  setTimeout(()=>{ if(area.firstChild) area.removeChild(area.firstChild); }, 4500);
-}
-function renderHeader(){
-  const u = currentUser();
-  if(u){
-    $('acctBox').innerHTML = `<strong>${u.name}</strong><div class="muted">${u.email} · ${u.role}</div>`;
-    $('btnLogout').classList.remove('hidden'); $('btnDelete').classList.remove('hidden');
-    $('hdrControls').innerHTML = `<div class="muted" style="margin-right:10px">${u.name}</div><button id="goDash">ไปแดชบอร์ด</button>`;
-    $('goDash').onclick = ()=>showView('view-dashboard');
-  } else {
-    $('acctBox').innerHTML = 'ยังไม่ล็อกอิน';
-    $('btnLogout').classList.add('hidden'); $('btnDelete').classList.add('hidden');
-    $('hdrControls').innerHTML = `<button id="goLogin">เข้าสู่ระบบ</button>`;
-    $('goLogin').onclick = ()=>showView('view-login');
-  }
-  renderDebug();
-}
-
-/* ------------------ Forms: Register / Login / Forgot / Reset ------------------ */
-/* Register */
-$('formRegister').addEventListener('submit', async e=>{
-  e.preventDefault();
-  const name = $('regName').value.trim();
-  const email = $('regEmail').value.trim().toLowerCase();
-  const pw = $('regPassword').value;
-  const pw2 = $('regPassword2').value;
-  const role = $('regRole').value; // seeker/shop
-
-  if(!name||!email||!pw) return showMessage('กรุณากรอกข้อมูลให้ครบ', false);
-  if(pw !== pw2) return showMessage('รหัสผ่านไม่ตรงกัน', false);
-
-  const users = load(KS.USERS);
-  if(users.some(u=>u.email===email)) return showMessage('อีเมลนี้ถูกใช้งานแล้ว', false);
-
-  const hashed = await hashPassword(pw);
-  const user = { id: uid('u'), name, email, role, passwordHash: hashed, created_at: Date.now() };
-  users.push(user);
-  save(KS.USERS, users);
-
-  // create basic profile
-  if(role === 'seeker'){
-    const seekers = load(KS.SEEKERS);
-    seekers.push({ seeker_id: uid('seeker'), user_id: user.id, phone:'', skills:[], created_at: Date.now() });
-    save(KS.SEEKERS, seekers);
-  } else if(role === 'shop'){
-    const shops = load(KS.SHOPS);
-    shops.push({ shop_id: uid('shop'), user_id: user.id, shop_name: name, description:'', address:'', phone:'', created_at: Date.now() });
-    save(KS.SHOPS, shops);
-  }
-
-  $('formRegister').reset();
-  showMessage('ลงทะเบียนสำเร็จ สามารถเข้าสู่ระบบได้', true);
-  showView('view-login');
-  renderDebug();
-});
-
-/* Login */
-$('formLogin').addEventListener('submit', async e=>{
-  e.preventDefault();
-  const email = $('loginEmail').value.trim().toLowerCase();
-  const pw = $('loginPassword').value;
-  if(!email||!pw) return showMessage('กรุณากรอกอีเมลและรหัสผ่าน', false);
-  const users = load(KS.USERS);
-  const user = users.find(u=>u.email===email);
-  if(!user) return showMessage('ไม่พบบัญชีนี้', false);
-  const h = await hashPassword(pw);
-  if(h !== user.passwordHash) return showMessage('รหัสผ่านไม่ถูกต้อง', false);
-  setSession(user.id);
-  $('formLogin').reset();
-  showMessage('เข้าสู่ระบบสำเร็จ', true);
-  renderHeader();
-  showView('view-dashboard');
-});
-
-/* Forgot */
-$('formForgot').addEventListener('submit', e=>{
-  e.preventDefault();
-  const email = $('forgotEmail').value.trim().toLowerCase();
-  if(!email) return showMessage('กรุณากรอกอีเมล', false);
-  const user = load(KS.USERS).find(u=>u.email===email);
-  if(!user) return showMessage('ไม่พบบัญชีนี้', false);
-  // For integration: here you would request backend to create reset token and send email.
-  // For local flow: show reset form directly and allow setting new password.
-  $('resetEmailLabel').textContent = email;
-  $('forgotEmail').value = '';
-  showMessage('พบอีเมล — โปรดตั้งรหัสผ่านใหม่', true);
-  showView('view-reset');
-});
-
-/* Reset */
-$('formReset').addEventListener('submit', async e=>{
-  e.preventDefault();
-  const pw = $('resetPassword').value;
-  const pw2 = $('resetPassword2').value;
-  const email = $('resetEmailLabel').textContent;
-  if(!pw || pw !== pw2) return showMessage('รหัสผ่านไม่ตรงกันหรือว่าง', false);
-  const users = load(KS.USERS);
-  const idx = users.findIndex(u=>u.email===email);
-  if(idx === -1) return showMessage('ไม่พบบัญชี', false);
-  users[idx].passwordHash = await hashPassword(pw);
-  save(KS.USERS, users);
-  $('formReset').reset();
-  showMessage('ตั้งรหัสผ่านใหม่เรียบร้อย', true);
-  showView('view-login');
-});
-
-/* ------------------ Dashboard rendering & actions ------------------ */
-function renderDashboard(){
-  const user = currentUser();
-  const area = $('dashboardArea');
-  if(!user){ area.innerHTML = '<div class="muted">โปรดเข้าสู่ระบบ</div>'; return; }
-
-  if(user.role === 'shop'){
-    // Shop: profile + post job + list jobs
-    const shop = load(KS.SHOPS).find(s=>s.user_id===user.id) || { shop_name: user.name, description: '' };
-    area.innerHTML = `
-      <div class="muted small">โปรไฟล์ร้าน</div>
-      <div style="margin:8px 0"><strong>${shop.shop_name}</strong></div>
-      <div class="muted small">${shop.description}</div>
-      <hr/>
-      <h4 class="small">โพสต์งานใหม่</h4>
-      <div id="shopJobForm"></div>
-      <hr/>
-      <h4 class="small">งานที่ประกาศ</h4>
-      <div id="shopJobsList"></div>
-    `;
-    renderShopJobForm(user);
-    renderShopJobsList(user);
-  } else if(user.role === 'seeker'){
-    // Seeker: profile + all jobs + my applications
-    const seeker = load(KS.SEEKERS).find(s=>s.user_id===user.id) || {};
-    area.innerHTML = `
-      <div class="muted small">โปรไฟล์ผู้หางาน</div>
-      <div style="margin:8px 0"><strong>${user.name}</strong></div>
-      <div class="muted small">ทักษะ: ${(seeker.skills||[]).join(', ') || '-'}</div>
-      <hr/>
-      <h4 class="small">งานทั้งหมด</h4>
-      <div id="allJobsList"></div>
-      <hr/>
-      <h4 class="small">งานที่สมัครแล้ว</h4>
-      <div id="myApplications"></div>
-    `;
-    renderAllJobsList(user);
-    renderMyApplications(user);
-  } else {
-    area.innerHTML = '<div class="muted">บทบาทไม่รองรับ</div>';
-  }
-  renderDebug();
-}
-
-/* Shop: create job */
-function renderShopJobForm(user){
-  const root = $('shopJobForm');
-  root.innerHTML = `
-    <label>หัวข้อ</label><input id="jobTitle"/>
-    <label>รายละเอียด</label><textarea id="jobDesc"></textarea>
-    <label>ค่าจ้าง (/ชม.)</label><input id="jobWage" type="number"/>
-    <label>วันทำงาน (ตัวอย่าง: จันทร์-ศุกร์)</label><input id="jobWorkDay"/>
-    <div class="actions" style="margin-top:8px">
-      <button id="createJobBtn">โพสต์งาน</button>
-      <button id="clearJobBtn" class="btn-ghost">ล้าง</button>
-    </div>
-  `;
-  $('createJobBtn').onclick = ()=>{
-    const title = $('jobTitle').value.trim();
-    if(!title) return showMessage('กรุณากรอกหัวข้อ', false);
-    const job = {
-      id: uid('job'),
-      shop_user_id: user.id,
-      title,
-      description: $('jobDesc').value.trim(),
-      wage_per_hour: Number($('jobWage').value)||0,
-      work_day: $('jobWorkDay').value.trim(),
-      status: 'open',
-      created_at: Date.now()
-    };
-    const jobs = load(KS.JOBS);
-    jobs.push(job); save(KS.JOBS, jobs);
-    $('jobTitle').value=''; $('jobDesc').value=''; $('jobWage').value=''; $('jobWorkDay').value='';
-    showMessage('โพสต์งานเรียบร้อย', true);
-    renderShopJobsList(user);
-  };
-  $('clearJobBtn').onclick = ()=>{ $('jobTitle').value=''; $('jobDesc').value=''; $('jobWage').value=''; $('jobWorkDay').value=''; };
-}
-
-/* Shop: list jobs */
-function renderShopJobsList(user){
-  const root = $('shopJobsList');
-  const jobs = load(KS.JOBS).filter(j=>j.shop_user_id===user.id);
-  if(jobs.length===0){ root.innerHTML = '<div class="muted small">ยังไม่มีงาน</div>'; return; }
-  root.innerHTML = jobs.map(j=>`
-    <div class="job-card">
-      <strong>${escapeHtml(j.title)}</strong>
-      <div class="muted small">${escapeHtml(j.description)}</div>
-      <div class="small">ค่าจ้าง: ${j.wage_per_hour} / ชม · สถานะ: ${j.status}</div>
-      <div style="margin-top:6px" class="actions">
-        <button class="btn-ghost" onclick="viewApplicants('${j.id}')">ดูผู้สมัคร</button>
-        <button class="btn-ghost" onclick="closeJob('${j.id}')">ปิดรับ</button>
-        <button class="btn-ghost" onclick="deleteJob('${j.id}')">ลบ</button>
-      </div>
-    </div>
-  `).join('');
-}
-
-/* Seeker: list all open jobs */
-function renderAllJobsList(user){
-  const root = $('allJobsList');
-  const jobs = load(KS.JOBS).filter(j=>j.status==='open');
-  if(jobs.length===0){ root.innerHTML = '<div class="muted small">ยังไม่มีงานเปิดรับ</div>'; return; }
-  const apps = load(KS.APPS);
-  root.innerHTML = jobs.map(j=>{
-    const shop = load(KS.SHOPS).find(s=>s.user_id===j.shop_user_id) || {};
-    const applied = apps.some(a=>a.job_id===j.id && a.seeker_user_id===user.id);
-    return `
-      <div class="job-card">
-        <strong>${escapeHtml(j.title)}</strong>
-        <div class="muted small">${escapeHtml(j.description)}</div>
-        <div class="small">ร้าน: ${escapeHtml(shop.shop_name||'ร้านค้า')} · ค่าจ้าง: ${j.wage_per_hour} / ชม</div>
-        <div style="margin-top:6px" class="actions">
-          ${applied ? '<button class="btn-ghost">สมัครแล้ว</button>' : `<button onclick="applyToJob('${j.id}')">สมัครงาน</button>`}
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-/* Seeker: my applications */
-function renderMyApplications(user){
-  const root = $('myApplications');
-  const apps = load(KS.APPS).filter(a=>a.seeker_user_id===user.id);
-  if(apps.length===0){ root.innerHTML = '<div class="muted small">ยังไม่ได้สมัครงาน</div>'; return; }
-  const jobs = load(KS.JOBS);
-  root.innerHTML = apps.map(a=>{
-    const j = jobs.find(x=>x.id===a.job_id) || {};
-    return `
-      <div class="job-card">
-        <strong>${escapeHtml(j.title||'[ลบแล้ว]')}</strong>
-        <div class="muted small">สถานะ: ${a.status}</div>
-        <div style="margin-top:6px" class="actions">
-          <button class="btn-ghost" onclick="withdrawApplication('${a.id}')">ถอนการสมัคร</button>
-        </div>
-      </div>
-    `;
-  }).join('');
-}
-
-/* -------------- Application / job actions (global access) -------------- */
-window.applyToJob = function(jobId){
-  const user = currentUser();
-  if(!user) return showMessage('โปรดเข้าสู่ระบบ', false);
-  if(user.role !== 'seeker') return showMessage('เฉพาะผู้หางานเท่านั้นที่สมัครได้', false);
-  const apps = load(KS.APPS);
-  if(apps.some(a=>a.job_id===jobId && a.seeker_user_id===user.id)) return showMessage('คุณสมัครงานนี้แล้ว', false);
-  apps.push({ id: uid('app'), job_id: jobId, seeker_user_id: user.id, status: 'applied', applied_at: Date.now() });
-  save(KS.APPS, apps);
-  showMessage('สมัครงานเรียบร้อย', true);
-  renderAllJobsList(user);
-  renderMyApplications(user);
-  renderDebug();
-};
-
-window.withdrawApplication = function(appId){
-  if(!confirm('ต้องการถอนการสมัครหรือไม่?')) return;
-  removeById(KS.APPS, 'id', appId);
-  showMessage('ถอนการสมัครแล้ว', true);
-  renderDashboard();
-};
-
-window.viewApplicants = function(jobId){
-  const job = load(KS.JOBS).find(j=>j.id===jobId);
-  if(!job) return showMessage('ไม่พบงาน', false);
-  const apps = load(KS.APPS).filter(a=>a.job_id===jobId);
-  const users = load(KS.USERS);
-  const seekers = load(KS.SEEKERS);
-  const html = `
-    <h3>${escapeHtml(job.title)}</h3>
-    ${apps.length===0 ? '<div class="muted small">ยังไม่มีผู้สมัคร</div>' : apps.map(a=>{
-      const u = users.find(x=>x.id===a.seeker_user_id) || { name:'[ไม่พบ]' };
-      const prof = seekers.find(s=>s.user_id===a.seeker_user_id) || {};
-      return `
-        <div style="margin:8px 0;border:1px solid #eef6ff;padding:8px;border-radius:8px">
-          <div><strong>${escapeHtml(u.name)}</strong></div>
-          <div class="muted small">โทร: ${escapeHtml(prof.phone||'-')} · สถานะ: ${a.status}</div>
-          <div style="margin-top:6px" class="actions">
-            <button class="btn-ghost" onclick="acceptApplicant('${a.id}')">รับ</button>
-            <button class="btn-ghost" onclick="rejectApplicant('${a.id}')">ปฏิเสธ</button>
-          </div>
+        <div class="card">
+          <h3>🏪 รีวิวร้านค้า</h3>
+          <p>รีวิวร้านที่คุณเคยร่วมงาน และอ่านความคิดเห็นจากผู้ใช้คนอื่น</p>
+          <button class="btn-primary" onclick="goReviews()">ดูรีวิวร้าน</button>
         </div>
       `;
-    }).join('')}
-  `;
-  showModal(html);
-};
+    } else if (user.role === "shop") {
+      dashboard.innerHTML = `
+        <div class="card">
+          <h3>🧾 โพสต์งานของคุณ</h3>
+          <p>เพิ่มงานใหม่เพื่อหาพนักงานพาร์ทไทม์ที่เหมาะสม</p>
+          <button class="btn-primary" onclick="goJobs()">จัดการงาน</button>
+        </div>
+        <div class="card">
+          <h3>👥 ผู้สมัครงาน</h3>
+          <p>ดูและจัดการผู้สมัครที่สนใจงานของร้านคุณ</p>
+          <button class="btn-primary" onclick="goApplications()">ดูผู้สมัคร</button>
+        </div>
+        <div class="card">
+          <h3>⭐ รีวิวร้านของคุณ</h3>
+          <p>ดูความคิดเห็นจากผู้หางานที่เคยร่วมงานกับคุณ</p>
+          <button class="btn-primary" onclick="goReviews()">ดูรีวิว</button>
+        </div>
+      `;
+    }
 
-window.acceptApplicant = function(appId){
-  const apps = load(KS.APPS);
-  const idx = apps.findIndex(a=>a.id===appId);
-  if(idx===-1) return showMessage('ไม่พบผู้สมัคร', false);
-  apps[idx].status = 'accepted'; save(KS.APPS, apps);
-  showMessage('เปลี่ยนสถานะเป็นรับแล้ว', true);
-  renderDashboard();
-};
-
-window.rejectApplicant = function(appId){
-  const apps = load(KS.APPS);
-  const idx = apps.findIndex(a=>a.id===appId);
-  if(idx===-1) return showMessage('ไม่พบผู้สมัคร', false);
-  apps[idx].status = 'rejected'; save(KS.APPS, apps);
-  showMessage('ปฏิเสธผู้สมัคร', true);
-  renderDashboard();
-};
-
-window.closeJob = function(jobId){
-  const jobs = load(KS.JOBS); const idx = jobs.findIndex(j=>j.id===jobId);
-  if(idx===-1) return showMessage('ไม่พบงาน', false);
-  jobs[idx].status = 'closed'; save(KS.JOBS, jobs);
-  showMessage('ปิดรับสมัครเรียบร้อย', true);
-  renderDashboard();
-};
-
-window.deleteJob = function(jobId){
-  if(!confirm('ลบงานนี้หรือไม่?')) return;
-  removeById(KS.JOBS, 'id', jobId);
-  // remove related applications
-  const apps = load(KS.APPS).filter(a=>a.job_id!==jobId); save(KS.APPS, apps);
-  showMessage('ลบงานเรียบร้อย', true);
-  renderDashboard();
-};
-
-/* ------------------ Account actions ------------------ */
-$('btnLogout').addEventListener('click', ()=>{
-  clearSession();
-  showMessage('ออกจากระบบแล้ว', true);
-  renderHeader();
-  showView('view-login');
-});
-
-$('btnDelete').addEventListener('click', ()=>{
-  const u = currentUser();
-  if(!u) return;
-  if(!confirm('ลบบัญชีนี้จาก localStorage หรือไม่? การกระทำนี้ไม่สามารถย้อนกลับได้')) return;
-  // remove user
-  removeById(KS.USERS, 'id', u.id);
-  // remove profiles
-  const seekers = load(KS.SEEKERS).filter(s=>s.user_id!==u.id); save(KS.SEEKERS, seekers);
-  const shops = load(KS.SHOPS).filter(s=>s.user_id!==u.id); save(KS.SHOPS, shops);
-  // remove jobs created by shop
-  const jobs = load(KS.JOBS).filter(j=>j.shop_user_id!==u.id); save(KS.JOBS, jobs);
-  // remove applications by this user
-  const apps = load(KS.APPS).filter(a=>a.seeker_user_id!==u.id); save(KS.APPS, apps);
-  clearSession();
-  showMessage('ลบบัญชีเรียบร้อย', true);
-  showView('view-login');
-});
-
-/* ------------------ Modal (simple) ------------------ */
-function showModal(html){
-  const m = document.createElement('div');
-  m.style.position='fixed'; m.style.left=0; m.style.top=0; m.style.width='100%'; m.style.height='100%';
-  m.style.display='flex'; m.style.alignItems='center'; m.style.justifyContent='center'; m.style.background='rgba(0,0,0,0.35)';
-  m.innerHTML = `<div style="background:#fff;padding:18px;border-radius:12px;max-width:720px;width:92%;max-height:80vh;overflow:auto">${html}<div style="margin-top:12px;display:flex;justify-content:flex-end"><button id="closeModal">ปิด</button></div></div>`;
-  document.body.appendChild(m);
-  document.getElementById('closeModal').onclick = ()=>document.body.removeChild(m);
-}
-
-/* ------------------ Debug & seed ------------------ */
-function renderDebug(){
-  const dbg = {
-    users: load(KS.USERS).map(u=>({ id:u.id, name:u.name, email:u.email, role:u.role })),
-    seekers: load(KS.SEEKERS),
-    shops: load(KS.SHOPS),
-    jobs: load(KS.JOBS),
-    applications: load(KS.APPS),
-    session: getSession()
-  };
-  $('dbg').textContent = JSON.stringify(dbg, null, 2);
-}
-
-/* Seed example data (useful for dev) */
-async function seed(){
-  // wipe relevant keys first
-  save(KS.USERS, []); save(KS.SEEKERS, []); save(KS.SHOPS, []); save(KS.JOBS, []); save(KS.APPS, []);
-  // create sample users
-  const shopPass = await hashPassword('shop1234');
-  const seekerPass = await hashPassword('seek1234');
-  const shopUser = { id: uid('u'), name:'ร้านทดสอบ', email:'shop@example.com', role:'shop', passwordHash:shopPass, created_at:Date.now() };
-  const seekerUser = { id: uid('u'), name:'ผู้หางานตัวอย่าง', email:'seeker@example.com', role:'seeker', passwordHash:seekerPass, created_at:Date.now() };
-  save(KS.USERS, [shopUser, seekerUser]);
-  save(KS.SHOPS, [{ shop_id: uid('shop'), user_id: shopUser.id, shop_name: shopUser.name, description: 'ร้านรับพนักงานพาร์ทไทม์', phone:'0810000000', address:'กรุงเทพ', created_at:Date.now() }]);
-  save(KS.SEEKERS, [{ seeker_id: uid('seeker'), user_id: seekerUser.id, phone:'0891111111', skills:['บริการ'], created_at:Date.now() }]);
-  save(KS.JOBS, [{ id: uid('job'), shop_user_id: shopUser.id, title:'พนักงานเสิร์ฟ (พาร์ทไทม์)', description:'เวรเย็น 16:00-22:00', wage_per_hour:60, work_day:'จันทร์-ศุกร์', status:'open', created_at:Date.now() }]);
-  save(KS.APPS, []);
-  renderDebug();
-  showMessage('ตั้งค่าเริ่มต้นเรียบร้อย — ผู้ใช้ตัวอย่าง: shop@example.com / shop1234, seeker@example.com / seek1234', true);
-}
-
-$('btnSeed').addEventListener('click', ()=>{ if(confirm('ตั้งค่าเริ่มต้น (จะเขียนทับข้อมูลเดิมที่ใช้โดยตัวอย่าง)?')) seed(); });
-$('btnClearAll').addEventListener('click', ()=>{ if(confirm('ล้างข้อมูลตัวอย่าง (จะไม่ลบ localStorage อื่น ๆ ที่คุณเก็บ)?')){ save(KS.USERS,[]); save(KS.SEEKERS,[]); save(KS.SHOPS,[]); save(KS.JOBS,[]); save(KS.APPS,[]); clearSession(); renderDebug(); showMessage('ล้างข้อมูลตัวอย่างเรียบร้อย', true); showView('view-login'); } });
-
-/* ------------------ Utilities ------------------ */
-function escapeHtml(s){ if(!s) return ''; return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;'); }
-
-/* ------------------ Inline functions used by HTML (exposed) ------------------ */
-window.viewApplicants = window.viewApplicants; window.acceptApplicant = window.acceptApplicant; window.rejectApplicant = window.rejectApplicant;
-window.closeJob = window.closeJob; window.deleteJob = window.deleteJob; window.applyToJob = window.applyToJob; window.withdrawApplication = window.withdrawApplication;
-
-/* ------------------ Navigation buttons ------------------ */
-$('toRegister').addEventListener('click', ()=>showView('view-register'));
-$('toForgot').addEventListener('click', ()=>showView('view-forgot'));
-$('toLoginFromReg').addEventListener('click', ()=>showView('view-login'));
-$('toLoginFromForgot').addEventListener('click', ()=>showView('view-login'));
-$('cancelReset').addEventListener('click', ()=>showView('view-login'));
-
-/* ------------------ Init ------------------ */
-(function init(){
-  // Ensure keys exist
-  if(!localStorage.getItem(KS.USERS)) save(KS.USERS, []);
-  if(!localStorage.getItem(KS.SEEKERS)) save(KS.SEEKERS, []);
-  if(!localStorage.getItem(KS.SHOPS)) save(KS.SHOPS, []);
-  if(!localStorage.getItem(KS.JOBS)) save(KS.JOBS, []);
-  if(!localStorage.getItem(KS.APPS)) save(KS.APPS, []);
-  renderHeader();
-  renderDebug();
-  if(currentUser()){
-    showView('view-dashboard');
-    renderDashboard();
-  } else {
-    showView('view-login');
-  }
-  // rerender dashboard on view change
-  const observer = new MutationObserver(()=>{ if(!$('view-dashboard').classList.contains('hidden')) renderDashboard(); });
-  observer.observe(document.getElementById('views'), { subtree:true, childList:false, attributes:false });
-})();
-</script>
+    // ===============================
+    // ปุ่มนำทาง
+    // ===============================
+    function logout() {
+      localStorage.removeItem(SESSION_KEY);
+      alert("ออกจากระบบเรียบร้อย");
+      location.href = "auth.html";
+    }
+    function goProfile() { location.href = "profile.html"; }
+    function goJobs() { location.href = "jobs.html"; }
+    function goApplications() { location.href = "applications.html"; }
+    function goReviews() { location.href = "reviews.html"; }
+  </script>
 </body>
 </html>

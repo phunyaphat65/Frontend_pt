@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>รีวิวร้าน | Part-time Match</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
+    * { box-sizing: border-box; }
+
+    body {
+      font-family: "Prompt", sans-serif;
+      background: #f6f8fb;
+      margin: 0;
+      color: #333;
+    }
+
+    nav {
+      background: #5264f9;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 30px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    nav a, nav button {
+      color: #fff;
+      text-decoration: none;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+      margin: 0 8px;
+      transition: 0.2s;
+    }
+
+    nav a:hover, nav button:hover { text-decoration: underline; }
+
+    .container {
+      max-width: 900px;
+      margin: 50px auto;
+      background: #fff;
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+      animation: fadeIn 0.4s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h2 {
+      color: #5264f9;
+      margin-bottom: 20px;
+      border-bottom: 2px solid #5264f9;
+      padding-bottom: 8px;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    form input, form textarea {
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 15px;
+    }
+
+    form button {
+      background: #5264f9;
+      color: #fff;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 15px;
+      transition: 0.2s;
+      width: 150px;
+      align-self: flex-end;
+    }
+
+    form button:hover {
+      background: #4050e0;
+    }
+
+    .review-list {
+      list-style: none;
+      padding: 0;
+    }
+
+    .review-item {
+      background: #f8f9ff;
+      padding: 20px;
+      border-radius: 12px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      animation: fadeIn 0.3s ease;
+    }
+
+    .review-item strong {
+      color: #5264f9;
+      font-size: 16px;
+    }
+
+    .rating {
+      color: #f39c12;
+      font-size: 18px;
+    }
+
+    .no-review {
+      text-align: center;
+      color: #888;
+      font-style: italic;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+
+<body>
+  <nav>
+    <div>
+      <a href="index.html">🏠 หน้าแรก</a>
+      <a href="profile.html">👤 โปรไฟล์</a>
+      <a href="jobs.html">💼 งาน</a>
+      <a href="applications.html">📋 ใบสมัคร</a>
+    </div>
+    <button onclick="logout()">ออกจากระบบ</button>
+  </nav>
+
+  <div class="container">
+    <h2>เขียนรีวิวร้าน</h2>
+    <form id="reviewForm">
+      <input name="shopId" placeholder="ชื่อร้าน หรือ Shop ID" required>
+      <input name="rating" type="number" min="1" max="5" placeholder="ให้คะแนน (1-5)" required>
+      <textarea name="comment" rows="3" placeholder="เขียนความคิดเห็นของคุณ..."></textarea>
+      <button type="submit">💾 บันทึกรีวิว</button>
+    </form>
+
+    <h2>รีวิวทั้งหมด</h2>
+    <ul class="review-list" id="reviews"></ul>
+  </div>
+
+  <script>
+    // ------------------------------
+    // Mock Database (LocalStorage)
+    // ------------------------------
+    const SESSION_KEY = "pt_session";
+    const USERS_KEY = "pt_users";
+    const REVIEWS_KEY = "pt_reviews";
+
+    // ตรวจสอบการเข้าสู่ระบบ
+    function getCurrentUser() {
+      const email = localStorage.getItem(SESSION_KEY);
+      if (!email) return null;
+      const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
+      return users.find(u => u.email === email) || null;
+    }
+
+    const user = getCurrentUser();
+    if (!user) {
+      alert("กรุณาเข้าสู่ระบบก่อน");
+      location.href = "auth.html";
+    }
+
+    function logout() {
+      localStorage.removeItem(SESSION_KEY);
+      alert("ออกจากระบบเรียบร้อย");
+      location.href = "auth.html";
+    }
+
+    // โหลดรีวิวจาก localStorage
+    function loadReviews() {
+      return JSON.parse(localStorage.getItem(REVIEWS_KEY) || "[]");
+    }
+
+    function saveReviews(reviews) {
+      localStorage.setItem(REVIEWS_KEY, JSON.stringify(reviews));
+    }
+
+    const reviewForm = document.getElementById("reviewForm");
+    const reviewList = document.getElementById("reviews");
+
+    function renderReviews() {
+      const reviews = loadReviews();
+      reviewList.innerHTML = "";
+      if (reviews.length === 0) {
+        reviewList.innerHTML = `<p class="no-review">ยังไม่มีรีวิวในระบบ</p>`;
+        return;
+      }
+      reviews.forEach(r => {
+        const li = document.createElement("li");
+        li.className = "review-item";
+        li.innerHTML = `
+          <strong>${r.user}</strong> <span class="rating">★ ${r.rating}</span>
+          <div>ร้าน: ${r.shopId}</div>
+          <p>${r.comment}</p>
+        `;
+        reviewList.appendChild(li);
+      });
+    }
+
+    // เมื่อบันทึกรีวิว
+    reviewForm.addEventListener("submit", e => {
+      e.preventDefault();
+      const formData = new FormData(reviewForm);
+      const newReview = {
+        shopId: formData.get("shopId").trim(),
+        rating: parseInt(formData.get("rating")),
+        comment: formData.get("comment").trim(),
+        user: user.email,
+        date: new Date().toLocaleString("th-TH")
+      };
+
+      const reviews = loadReviews();
+      reviews.unshift(newReview);
+      saveReviews(reviews);
+
+      reviewForm.reset();
+      renderReviews();
+      alert("บันทึกรีวิวเรียบร้อย!");
+    });
+
+    renderReviews();
+  </script>
+</body>
+</html>
