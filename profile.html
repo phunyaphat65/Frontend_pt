@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>โปรไฟล์ | Part-time Match</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script type="module">
+    import { load, KS } from './js/storage.js';
+
+    function renderProfile() {
+      const session = JSON.parse(localStorage.getItem('pt_session') || 'null');
+      if (!session) {
+        document.body.innerHTML = '<p>กรุณาเข้าสู่ระบบก่อน</p>';
+        return;
+      }
+      const users = load(KS.USERS);
+      const user = users.find(u => u.id === session.user_id);
+      if (!user) return document.body.innerHTML = '<p>ไม่พบบัญชี</p>';
+
+      let html = `<h1>${user.name}</h1><p>${user.email}</p><p>บทบาท: ${user.role}</p>`;
+
+      if (user.role === 'seeker') {
+        const seekers = load(KS.SEEKERS);
+        const prof = seekers.find(s => s.user_id === user.id);
+        html += `<p>เบอร์โทร: ${prof?.phone || '-'}</p><p>ทักษะ: ${(prof?.skills || []).join(', ')}</p>`;
+      } else if (user.role === 'shop') {
+        const shops = load(KS.SHOPS);
+        const shop = shops.find(s => s.user_id === user.id);
+        html += `<p>ชื่อร้าน: ${shop?.shop_name || '-'}</p><p>รายละเอียด: ${shop?.description || '-'}</p>`;
+      }
+
+      document.getElementById('profile').innerHTML = html;
+    }
+
+    renderProfile();
+  </script>
+</head>
+<body>
+  <div id="profile"></div>
+</body>
+</html>
