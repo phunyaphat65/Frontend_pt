@@ -1,138 +1,173 @@
+// ----------------------------------------------------------   
+// seeker/js/jobs.js (FINAL VERSION — MATCHED WITH applications.js)
+// KEY ทุกตัวถูกปรับให้ตรงกัน
+// ระบบสมัครงานทำงานแน่นอน → applications.html แสดงผลทันที
 // ----------------------------------------------------------
-// seeker/js/jobs.js
-// แสดงรายการงาน, ระบบค้นหา, สมัครงาน + แสดงบนแผนที่
-// ----------------------------------------------------------
+
 document.addEventListener("DOMContentLoaded", () => {
-  const JOBS_KEY = "pt_jobs";
-  const USERS_KEY = "pt_users";
+
+  const JOBS_KEY = "jobs";                    // <--- ต้องตรงกับ shop และ applications.js
   const APPS_KEY = "pt_applications";
-
+  const LIKES_KEY = "pt_likes";
   const SESSION_SEEKER = "pt_seeker_session";
-  const SESSION_SHOP = "pt_shop_session";
 
-  const jobList = document.getElementById("jobsList");
+  const jobList = document.getElementById("jobList");
   const searchInput = document.getElementById("searchInput");
-  const categoryFilter = document.getElementById("categoryFilter");
+  const applyBtn = document.getElementById("applyBtn");
 
   const modal = document.getElementById("jobModal");
-  const closeModalBtn = document.getElementById("closeJobModal");
-  const applyBtn = document.getElementById("applyBtn");
+  const closeBtn = document.getElementById("closeJobModal");
 
   const jobTitle = document.getElementById("jobTitle");
   const shopName = document.getElementById("shopName");
-  const jobCategory = document.getElementById("jobCategory");
+  const shopRating = document.getElementById("shopRating");
   const jobWage = document.getElementById("jobWage");
   const jobStartDate = document.getElementById("jobStartDate");
   const jobLocation = document.getElementById("jobLocation");
   const jobDesc = document.getElementById("jobDesc");
 
   let selectedJobId = null;
-  let map, markers = [];
 
-  // --------------------------
-  // ตรวจสอบ session
-  // --------------------------
-  const currentEmail = localStorage.getItem(SESSION_SEEKER);
-  if (!currentEmail) {
-    alert("กรุณาเข้าสู่ระบบก่อน");
-    window.location.href = "../auth.html";
+  // -----------------------------
+  // Login Check
+  // -----------------------------
+  const seekerEmail = localStorage.getItem(SESSION_SEEKER);
+  if (!seekerEmail) {
+    Swal.fire("ต้องเข้าสู่ระบบก่อน", "", "warning").then(() => {
+      location.href = "../auth.html";
+    });
     return;
   }
 
-  // --------------------------
-  // โหลดข้อมูล
-  // --------------------------
+  // -----------------------------
+  // Loaders
+  // -----------------------------
   const loadJobs = () => JSON.parse(localStorage.getItem(JOBS_KEY) || "[]");
-  const loadApplications = () => JSON.parse(localStorage.getItem(APPS_KEY) || "[]");
+  const loadApps = () => JSON.parse(localStorage.getItem(APPS_KEY) || "[]");
+  const loadLikes = () => JSON.parse(localStorage.getItem(LIKES_KEY) || "[]");
 
-  // --------------------------
-  // สมัครงาน
-  // --------------------------
-  function applyJob(jobId) {
-    const jobs = loadJobs();
-    const job = jobs.find(j => j.id === jobId);
-    if (!job) return alert("ไม่พบนางานนี้");
-
-    const apps = loadApplications();
-    const already = apps.find(a => a.user === currentEmail && a.jobId === jobId);
-    if (already) return alert("คุณได้สมัครงานนี้ไปแล้ว");
-
-    const newApp = {
-      id: Date.now(),
-      user: currentEmail,
-      jobId,
-      jobTitle: job.title,
-      shopName: job.shopName,
-      date: new Date().toISOString(),
-      status: "รอการตรวจสอบ"
-    };
-
-    apps.push(newApp);
-    localStorage.setItem(APPS_KEY, JSON.stringify(apps));
-
-    alert(`สมัครงาน "${job.title}" สำเร็จแล้ว`);
-    modal.classList.remove("active");
-    renderJobs(searchInput.value, categoryFilter.value);
-  }
-
-  // --------------------------
-  // แสดง Modal รายละเอียดงาน
-  // --------------------------
-  function openJobModal(job) {
+  // -----------------------------
+  // Modal
+  // -----------------------------
+  window.openJobModal = (job) => {
     selectedJobId = job.id;
-    jobTitle.textContent = job.title;
-    shopName.textContent = job.shopName || "-";
-    jobCategory.textContent = job.category || "-";
-    jobWage.textContent = job.salary || "ไม่ระบุ";
-    jobStartDate.textContent = job.startDate || "-";
-    jobLocation.textContent = job.location || "-";
-    jobDesc.textContent = job.description || "ไม่มีรายละเอียดเพิ่มเติม";
 
-    const apps = loadApplications();
-    const already = apps.some(a => a.user === currentEmail && a.jobId === job.id);
-    applyBtn.disabled = already;
-    applyBtn.textContent = already ? "✅ สมัครแล้ว" : "สมัครงานนี้";
+    jobTitle.textContent = job.title;
+    shopName.textContent = job.shop_name;
+
+    // ไม่มี Rating ใช้ 0
+    const rate = 0;
+    shopRating.innerHTML = "⭐".repeat(rate) + "☆".repeat(5 - rate);
+
+    jobWage.textContent = job.wage;
+    jobStartDate.textContent = job.startDate;
+    jobLocation.textContent = job.location;
+    jobDesc.textContent = job.description;
+
+    const apps = loadApps();
+    const applied = apps.some(a => a.applicant === seekerEmail && a.job_id === job.id);
+
+    applyBtn.disabled = applied;
+    applyBtn.textContent = applied ? "✅ สมัครแล้ว" : "สมัครงานนี้";
 
     modal.classList.add("active");
-  }
+  };
 
-  closeModalBtn.addEventListener("click", () => modal.classList.remove("active"));
+  closeBtn.addEventListener("click", () => modal.classList.remove("active"));
+  window.onclick = e => { if (e.target === modal) modal.classList.remove("active"); };
+
+  // -----------------------------
+  // Apply Job
+  // -----------------------------
   applyBtn.addEventListener("click", () => {
-    if (selectedJobId) applyJob(selectedJobId);
+    if (!selectedJobId) return;
+
+    const jobs = loadJobs();
+    const job = jobs.find(j => j.id === selectedJobId);
+    if (!job) return Swal.fire("ไม่พบนาน", "", "error");
+
+    let apps = loadApps();
+    const duplicated = apps.some(a => a.applicant === seekerEmail && a.job_id === job.id);
+
+    if (duplicated)
+      return Swal.fire("คุณสมัครงานนี้แล้ว", "", "info");
+
+    // บันทึกใบสมัคร
+    apps.push({
+      id: Date.now(),             // ใช้ ID มาตรฐานเดียวกับ applications.js
+      applicant: seekerEmail,
+      job_id: job.id,
+      job_title: job.title,
+      shop_name: job.shop_name,
+      date: new Date().toISOString(),
+      status: "pending",
+      note: ""
+    });
+
+    localStorage.setItem(APPS_KEY, JSON.stringify(apps));
+
+    Swal.fire("สมัครงานสำเร็จ", job.title, "success");
+
+    modal.classList.remove("active");
+
+    // อัปเดตการ์ดงาน
+    renderJobs(searchInput.value);
   });
 
-  // --------------------------
-  // แสดงบนแผนที่
-  // --------------------------
-  function initMap() {
+  // -----------------------------
+  // Like System
+  // -----------------------------
+  const toggleLike = (jobId) => {
+    let likes = loadLikes();
+    const index = likes.findIndex(l => l.user === seekerEmail && l.job_id === jobId);
+
+    if (index >= 0) likes.splice(index, 1);
+    else likes.push({ id: Date.now(), user: seekerEmail, job_id: jobId });
+
+    localStorage.setItem(LIKES_KEY, JSON.stringify(likes));
+    renderJobs(searchInput.value);
+  };
+
+  const isLiked = (jobId) => {
+    return loadLikes().some(l => l.user === seekerEmail && l.job_id === jobId);
+  };
+
+  // -----------------------------
+  // Google Map
+  // -----------------------------
+  let map;
+  let markers = [];
+
+  window.initMap = () => {
     map = new google.maps.Map(document.getElementById("map"), {
-      center: { lat: 13.7563, lng: 100.5018 },
-      zoom: 11,
+      zoom: 12,
+      center: { lat: 13.7563, lng: 100.5018 }
     });
-  }
+  };
 
-  function clearMarkers() {
-    markers.forEach(m => m.setMap(null));
-    markers = [];
-  }
+  const clearMarkers = () => markers.forEach(m => m.setMap(null));
 
-  function renderMarkers(jobs) {
+  const renderMarkers = (jobs) => {
+    if (!map) return;
     clearMarkers();
+    markers = [];
+
     jobs.forEach(job => {
       if (!job.lat || !job.lng) return;
+
       const marker = new google.maps.Marker({
         position: { lat: job.lat, lng: job.lng },
         map,
-        title: job.title,
+        title: job.title
       });
 
       const info = new google.maps.InfoWindow({
         content: `
-          <div style="font-size:14px;">
-            <strong>${job.title}</strong><br>
-            🏪 ${job.shopName || "-"}<br>
-            💰 ${job.salary || "-"} บาท/ชม.<br>
-            📅 เริ่ม: ${job.startDate || "-"}
+          <div>
+            <b>${job.title}</b><br>
+            🏪 ${job.shop_name}<br>
+            ⭐ 0/5<br>
+            💰 ${job.wage} บาท/ชม.<br>
           </div>
         `
       });
@@ -140,46 +175,60 @@ document.addEventListener("DOMContentLoaded", () => {
       marker.addListener("click", () => info.open(map, marker));
       markers.push(marker);
     });
-  }
+  };
 
-  // --------------------------
-  // แสดงรายการงาน
-  // --------------------------
-  function renderJobs(keyword = "", category = "") {
+  // -----------------------------
+  // Render job list
+  // -----------------------------
+  function renderJobs(keyword = "") {
     const jobs = loadJobs();
-    const apps = loadApplications();
-
-    let filtered = jobs.filter(j => {
-      const text = `${j.title} ${j.shopName} ${j.description}`.toLowerCase();
-      const matchesKeyword = text.includes(keyword.toLowerCase());
-      const matchesCategory = category === "" || j.category === category;
-      return matchesKeyword && matchesCategory;
-    });
+    const apps = loadApps();
 
     jobList.innerHTML = "";
 
+    const filtered = jobs.filter(j =>
+      `${j.title} ${j.shop_name} ${j.description} ${j.location}`
+        .toLowerCase()
+        .includes(keyword.toLowerCase())
+    );
+
     if (filtered.length === 0) {
-      jobList.innerHTML = `<p class="empty-text">ไม่พบนางานที่ตรงกับคำค้นหา</p>`;
+      jobList.innerHTML = `<p class="no-data">ไม่พบงานที่ตรงกับคำค้นหา</p>`;
       clearMarkers();
       return;
     }
 
     filtered.forEach(job => {
-      const applied = apps.some(a => a.user === currentEmail && a.jobId === job.id);
+      const applied = apps.some(a => a.applicant === seekerEmail && a.job_id === job.id);
+      const liked = isLiked(job.id);
 
       const card = document.createElement("div");
       card.className = "job-card";
+
       card.innerHTML = `
+        <span class="like-btn ${liked ? "liked" : ""}" data-id="${job.id}">❤️</span>
+
         <h4>${job.title}</h4>
-        <p>🏪 ${job.shopName || "-"}</p>
-        <p>💰 ${job.salary || "-"} บาท/ชม.</p>
-        <p>📅 เริ่ม: ${job.startDate || "-"}</p>
-        <p>📍 ${job.location || "-"}</p>
-        <button class="btn-detail">${applied ? "✅ สมัครแล้ว" : "ดูรายละเอียด"}</button>
+        <p class="rating">⭐ 0/5</p>
+
+        <p>🏪 ${job.shop_name}</p>
+        <p>💰 ${job.wage} บาท/ชม.</p>
+        <p>📅 เริ่ม: ${job.startDate}</p>
+        <p>📍 ${job.location}</p>
+
+        <button class="btn-primary">
+          ${applied ? "✅ สมัครแล้ว" : "ดูรายละเอียด"}
+        </button>
       `;
 
-      const btn = card.querySelector(".btn-detail");
-      btn.addEventListener("click", () => openJobModal(job));
+      // like button
+      card.querySelector(".like-btn").addEventListener("click", e => {
+        e.stopPropagation();
+        toggleLike(job.id);
+      });
+
+      // modal button
+      card.querySelector("button").addEventListener("click", () => openJobModal(job));
 
       jobList.appendChild(card);
     });
@@ -187,20 +236,9 @@ document.addEventListener("DOMContentLoaded", () => {
     renderMarkers(filtered);
   }
 
-  // --------------------------
-  // Event
-  // --------------------------
-  searchInput.addEventListener("input", () => {
-    renderJobs(searchInput.value, categoryFilter.value);
-  });
+  searchInput.addEventListener("input", () => renderJobs(searchInput.value));
 
-  categoryFilter.addEventListener("change", () => {
-    renderJobs(searchInput.value, categoryFilter.value);
-  });
-
-  // --------------------------
-  // เริ่มต้น
-  // --------------------------
-  window.initMap = initMap;
+  // start
   renderJobs();
+
 });

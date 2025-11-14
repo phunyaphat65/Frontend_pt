@@ -5,233 +5,293 @@
   <title>💼 จัดการงาน | Part-time Match</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="stylesheet" href="../common/css/style.css">
+
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <style>
-    body {
-      font-family: "Prompt", sans-serif;
-      background: #f8faff;
-      color: #333;
-      margin: 0;
-    }
-
+    body { font-family: "Prompt", sans-serif; background: #f8faff; margin: 0; }
     .navbar {
-      background: linear-gradient(90deg, #667eea, #764ba2);
-      color: #fff;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 24px;
+      background: linear-gradient(90deg,#667eea,#764ba2);
+      padding: 14px 24px; color: #fff;
+      display: flex; justify-content: space-between; align-items: center;
     }
-    .navbar h1 { margin: 0; font-size: 20px; font-weight: 600; }
-    .nav-right a { color: white; text-decoration: none; margin: 0 12px; font-weight: 500; }
-    .nav-right a:hover, .nav-right a.active { opacity: 0.8; }
-    .btn-logout { background: rgba(255,255,255,0.25); border: none; color: white; padding: 8px 14px; border-radius: 8px; cursor: pointer; }
-    .btn-logout:hover { background: rgba(255,255,255,0.35); }
+    .navbar .nav-right a { color:#fff; margin-right:12px; text-decoration:none; }
+    .navbar .nav-right a.active { font-weight:600; text-decoration:underline; }
 
     .container {
-      max-width: 900px;
-      margin: 40px auto;
-      background: #fff;
-      border-radius: 14px;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
-      padding: 35px 45px;
+      max-width:900px; margin:40px auto; background:#fff;
+      padding:35px 45px; border-radius:14px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.08);
     }
-
-    .add-job {
-      background: linear-gradient(90deg, #667eea, #764ba2);
-      color: #fff;
-      padding: 10px 18px;
-      border-radius: 10px;
-      border: none;
-      cursor: pointer;
-      font-weight: 500;
-      font-size: 15px;
-    }
-
     .job-list {
-      display: grid;
-      gap: 18px;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      margin-top: 20px;
+      display:grid; gap:16px;
+      grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
     }
-
     .job-card {
-      background: #fafbff;
-      padding: 20px;
-      border-radius: 14px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
-      transition: 0.25s;
+      background:#fafbff; padding:16px; border-radius:12px;
+      transition:.25s; box-shadow:0 3px 8px rgba(0,0,0,0.1);
     }
-
-    .job-card:hover { transform: translateY(-4px); }
+    .job-card:hover { transform:translateY(-4px); }
 
     /* Modal */
-    .modal {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: rgba(0,0,0,0.4);
-      z-index: 1000;
-    }
-    .modal.hidden { display: none; }
+    .modal { position:fixed; inset:0; display:flex;
+      justify-content:center; align-items:center;
+      background:rgba(0,0,0,0.45); z-index:999; }
+    .hidden { display:none; }
 
     .modal-content {
-      background: #fff;
-      border-radius: 14px;
-      padding: 25px 30px;
-      width: 95%;
-      max-width: 600px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-      position: relative;
-      max-height: 90vh;
-      overflow-y: auto;
+      background:#fff; padding:25px 30px; width:95%; max-width:600px;
+      border-radius:14px; max-height:90vh; overflow-y:auto;
+      box-shadow:0 8px 24px rgba(0,0,0,0.2); position:relative;
     }
-
-    .modal-content h3 { margin-bottom: 15px; text-align: center; color: #444; }
-
-    .modal-content input, .modal-content textarea, .modal-content select {
-      width: 100%;
-      margin-bottom: 10px;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
+    .modal-content input, .modal-content textarea {
+      width:100%; padding:9px; margin-bottom:10px;
+      border-radius:8px; border:1px solid #ccc; font-size:15px;
     }
-
-    #map {
-      height: 220px;
-      border-radius: 8px;
-      margin-bottom: 10px;
-    }
-
-    .modal-content button {
-      width: 100%;
-      padding: 10px;
-      border: none;
-      background: linear-gradient(90deg, #667eea, #764ba2);
-      color: #fff;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 500;
-    }
-
-    .modal-close {
-      position: absolute;
-      top: 10px;
-      right: 14px;
-      font-size: 20px;
-      color: #888;
-      cursor: pointer;
-    }
-
+    #map { height:220px; border-radius:10px; margin-bottom:10px; }
     .preview-img {
-      width: 100%;
-      max-height: 180px;
-      object-fit: cover;
-      border-radius: 8px;
-      margin-bottom: 10px;
-      display: none;
+      width:100%; max-height:180px; border-radius:8px;
+      display:none; object-fit:cover; margin-bottom:10px;
+    }
+    .btn-save {
+      width:100%; padding:10px; border:none;
+      background:linear-gradient(90deg,#667eea,#764ba2);
+      color:#fff; border-radius:8px; cursor:pointer;
+    }
+    .modal-close {
+      position:absolute; top:10px; right:12px;
+      font-size:22px; cursor:pointer; color:#888;
     }
   </style>
 </head>
 
 <body>
-  <!-- ✅ Navbar -->
-  <nav class="navbar">
-    <div class="nav-left"><h1>Part-time Match (ร้านค้า)</h1></div>
-    <div class="nav-right">
-      <a href="matching.html">หน้าแรก</a>
-      <a href="profile.html">โปรไฟล์</a>
-      <a href="jobs.html" class="active">งานของฉัน</a>
-      <a href="applications.html">ใบสมัคร</a>
-      <a href="matching.html">การจับคู่</a>
-      <a href="reviews.html">รีวิวร้าน</a>
-      <button id="logoutBtn" class="btn-logout">ออกจากระบบ</button>
-    </div>
-  </nav>
 
-  <div class="container">
-    <h2>💼 งานที่คุณประกาศ</h2>
-    <button id="addJobBtn" class="add-job">➕ เพิ่มงานใหม่</button>
-    <div id="jobList" class="job-list"></div>
-    <p id="emptyState" style="text-align:center; color:#888; margin-top:20px; display:none;">
-      ยังไม่มีงานในระบบ
-    </p>
+<!-- 🔹 Navbar -->
+<nav class="navbar">
+  <div><h1>Part-time Match (ร้านค้า)</h1></div>
+  <div class="nav-right">
+    <a href="matching.html">หน้าแรก</a>
+    <a href="profile.html">โปรไฟล์</a>
+    <a href="jobs.html" class="active">งานของฉัน</a>
+    <a href="applications.html">ใบสมัคร</a>
+    <a href="matching.html">การจับคู่</a>
+    <a href="reviews.html">รีวิวร้าน</a>
   </div>
+</nav>
 
-  <!-- Modal เพิ่ม/แก้ไขงาน -->
-  <div id="jobModal" class="modal hidden">
-    <div class="modal-content">
-      <span class="modal-close" id="closeModal">&times;</span>
-      <h3 id="modalTitle">เพิ่มงานใหม่</h3>
+<div class="container">
+  <h2>💼 งานที่คุณประกาศ</h2>
 
-      <input type="text" id="jobTitle" placeholder="🧾 ชื่องาน" required>
-      <textarea id="jobDesc" rows="2" placeholder="รายละเอียดงานเพิ่มเติม"></textarea>
+  <button id="addJobBtn" class="add-job" style="
+    background:linear-gradient(90deg,#667eea,#764ba2);
+    color:#fff;padding:10px 18px;border:none;border-radius:10px;cursor:pointer;">
+    ➕ เพิ่มงานใหม่
+  </button>
 
-      <input type="text" id="jobLocation" placeholder="📍 ที่อยู่หรือสถานที่ทำงาน" required>
-      <div id="map"></div>
+  <div id="jobList" class="job-list"></div>
+  <p id="emptyState" style="text-align:center;color:#888;margin-top:20px;display:none;">
+    ยังไม่มีงานในระบบ
+  </p>
+</div>
 
-      <label> ระบุวันเริ่มงาน :</label>
-      <div style="display:flex; gap:10px;">
-        <input type="date" id="jobStart" placeholder="วันที่เริ่มงาน">
-      </div>
-      
-      <input type="number" id="jobWage" placeholder="💰 ค่าจ้าง (บาท/ชั่วโมง)" required>
-      <input type="tel" id="jobContact" placeholder="📞 เบอร์โทรติดต่อ">
+<!-- 🔹 Modal เพิ่มงาน -->
+<div id="jobModal" class="modal hidden">
+  <div class="modal-content">
+    <span id="closeModal" class="modal-close">&times;</span>
+    <h3 id="modalTitle">เพิ่มงานใหม่</h3>
 
-      <label>🖼️ รูปภาพงาน (เลือก 1 รูป):</label>
-      <input type="file" id="jobImage" accept="image/*">
-      <img id="previewImage" class="preview-img">
+    <input type="text" id="jobTitle" placeholder="🧾 ชื่องาน" required>
+    <textarea id="jobDesc" rows="2" placeholder="รายละเอียดงานเพิ่มเติม"></textarea>
 
-      <button id="saveJobBtn">บันทึกงาน</button>
-    </div>
+    <input type="text" id="jobLocation" placeholder="📍 ที่อยู่หรือพิกัด" required>
+    <div id="map"></div>
+
+    <label>วันที่เริ่มงาน:</label>
+    <input type="date" id="jobStart">
+
+    <input type="number" id="jobWage" placeholder="💰 ค่าจ้าง (บาท/ชม.)" required>
+    <input type="tel" id="jobContact" placeholder="📞 เบอร์โทรติดต่อ">
+
+    <label>รูปภาพงาน:</label>
+    <input type="file" id="jobImage" accept="image/*">
+    <img id="previewImage" class="preview-img">
+
+    <button id="saveJobBtn" class="btn-save">บันทึกงาน</button>
   </div>
+</div>
 
-  <script>
-    const modal = document.getElementById("jobModal");
-    const openBtn = document.getElementById("addJobBtn");
-    const closeBtn = document.getElementById("closeModal");
-    const mapContainer = document.getElementById("map");
-    const previewImg = document.getElementById("previewImage");
-    let map, marker;
+<script>
+// ---------------------------
+// 🔐 ตรวจสอบ Login ร้านค้า
+// ---------------------------
+const SESSION_SHOP = "pt_shop_session";
+const USERS_KEY = "pt_users";
+const JOB_STORAGE = "pt_jobs";
 
-    openBtn.addEventListener("click", () => {
-      modal.classList.remove("hidden");
-      setTimeout(initMap, 200); // สร้างแผนที่หลัง modal เปิด
+const shopEmail = localStorage.getItem(SESSION_SHOP);
+if (!shopEmail) {
+  Swal.fire("กรุณาเข้าสู่ระบบก่อน", "", "warning")
+    .then(() => location.href = "../auth.html");
+}
+
+const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
+const shopInfo = users.find(u => u.email === shopEmail);
+
+let jobs = JSON.parse(localStorage.getItem(JOB_STORAGE)) || [];
+
+// ---------------------------
+// UI Elements
+// ---------------------------
+const modal = document.getElementById("jobModal");
+const openBtn = document.getElementById("addJobBtn");
+const closeBtn = document.getElementById("closeModal");
+
+const jobListEl = document.getElementById("jobList");
+const emptyState = document.getElementById("emptyState");
+
+let map, marker;
+let selectedImageBase64 = "";
+
+// ---------------------------
+// เปิด Modal
+// ---------------------------
+openBtn.onclick = () => {
+  modal.classList.remove("hidden");
+  resetForm();
+  setTimeout(initMap, 200);
+};
+
+// ปิด modal
+closeBtn.onclick = () => modal.classList.add("hidden");
+
+// ---------------------------
+// Image Preview
+// ---------------------------
+document.getElementById("jobImage").addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = evt => {
+    selectedImageBase64 = evt.target.result;
+    const img = document.getElementById("previewImage");
+    img.src = selectedImageBase64;
+    img.style.display = "block";
+  };
+  reader.readAsDataURL(file);
+});
+
+// ---------------------------
+// Map / Pick Location
+// ---------------------------
+function initMap() {
+  if (!map) {
+    map = L.map('map').setView([13.7563, 100.5018], 12);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+    map.on("click", e => {
+      if (marker) map.removeLayer(marker);
+
+      marker = L.marker(e.latlng).addTo(map);
+      document.getElementById("jobLocation").value =
+        `Lat: ${e.latlng.lat.toFixed(5)}, Lng: ${e.latlng.lng.toFixed(5)}`;
     });
+  }
+  setTimeout(() => map.invalidateSize(), 200);
+}
 
-    closeBtn.addEventListener("click", () => modal.classList.add("hidden"));
+// ---------------------------
+// บันทึกงาน
+// ---------------------------
+document.getElementById("saveJobBtn").onclick = () => {
+  const title = document.getElementById("jobTitle").value.trim();
+  const description = document.getElementById("jobDesc").value.trim();
+  const location = document.getElementById("jobLocation").value.trim();
+  const start = document.getElementById("jobStart").value;
+  const wage = document.getElementById("jobWage").value;
+  const contact = document.getElementById("jobContact").value;
 
-    // แสดงรูปตัวอย่าง
-    document.getElementById("jobImage").addEventListener("change", e => {
-      const file = e.target.files[0];
-      if (file) {
-        const reader = new FileReader();
-        reader.onload = evt => {
-          previewImg.src = evt.target.result;
-          previewImg.style.display = "block";
-        };
-        reader.readAsDataURL(file);
-      }
-    });
+  if (!title || !location || !wage) {
+    Swal.fire("กรุณากรอกข้อมูลให้ครบ", "", "warning");
+    return;
+  }
 
-    function initMap() {
-      if (map) return;
-      map = L.map('map').setView([13.7563, 100.5018], 12);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap'
-      }).addTo(map);
+  let lat = null, lng = null;
+  if (marker) {
+    lat = marker.getLatLng().lat;
+    lng = marker.getLatLng().lng;
+  }
 
-      map.on('click', function(e) {
-        if (marker) map.removeLayer(marker);
-        marker = L.marker(e.latlng).addTo(map);
-        document.getElementById("jobLocation").value = `Lat: ${e.latlng.lat.toFixed(5)}, Lng: ${e.latlng.lng.toFixed(5)}`;
-      });
-    }
-  </script>
+  const newJob = {
+    id: Date.now(),
+    shop_email: shopEmail,
+    shop_name: shopInfo?.name || "ร้านของฉัน",
+    title,
+    description,
+    location,
+    lat,
+    lng,
+    startDate: start,
+    wage,
+    contact,
+    image: selectedImageBase64 || "",
+    created_at: new Date().toISOString()
+  };
+
+  jobs.push(newJob);
+  localStorage.setItem(JOB_STORAGE, JSON.stringify(jobs));
+
+  Swal.fire("บันทึกสำเร็จ!", "เพิ่มงานเรียบร้อยแล้ว", "success");
+
+  modal.classList.add("hidden");
+  renderJobs();
+};
+
+// ---------------------------
+// แสดงงานร้านค้า
+// ---------------------------
+function renderJobs() {
+  const shopJobs = jobs.filter(j => j.shop_email === shopEmail);
+
+  jobListEl.innerHTML = "";
+  emptyState.style.display = shopJobs.length === 0 ? "block" : "none";
+
+  shopJobs.forEach(job => {
+    const card = document.createElement("div");
+    card.className = "job-card";
+    card.innerHTML = `
+      <h3>${job.title}</h3>
+      <p>🏪 <strong>${job.shop_name}</strong></p>
+      <p>📍 ${job.location}</p>
+      <p>🗺 Lat: ${job.lat || "-"}, Lng: ${job.lng || "-"}</p>
+      <p>💰 <strong>${job.wage} บาท/ชม.</strong></p>
+      <p>📅 เริ่มงาน: ${job.startDate || "-"}</p>
+      ${job.image ? `<img src="${job.image}" style="width:100%;border-radius:8px;margin-top:10px;">` : ""}
+    `;
+    jobListEl.appendChild(card);
+  });
+}
+
+// ---------------------------
+// Reset Form
+// ---------------------------
+function resetForm() {
+  document.getElementById("jobTitle").value = "";
+  document.getElementById("jobDesc").value = "";
+  document.getElementById("jobLocation").value = "";
+  document.getElementById("jobStart").value = "";
+  document.getElementById("jobWage").value = "";
+  document.getElementById("jobContact").value = "";
+  document.getElementById("previewImage").style.display = "none";
+  selectedImageBase64 = "";
+}
+
+// โหลดครั้งแรก
+renderJobs();
+</script>
+
 </body>
 </html>

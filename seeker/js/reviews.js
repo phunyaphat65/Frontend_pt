@@ -1,17 +1,17 @@
 /**
  * seeker/js/reviews.js
- * ระบบรีวิวร้าน สำหรับผู้หางาน (Seeker)
- * - แสดงเฉพาะงานที่ผู้ใช้เคยสมัคร
+ * ระบบรีวิวสำหรับผู้หางาน (Seeker)
+ * - แสดงเฉพาะงานที่ผู้ใช้เคยสมัคร (applicant)
  * - ป้องกันรีวิวซ้ำ
- * - เก็บ/แก้ไขรีวิวใน localStorage
- * - ใช้ SweetAlert2 แจ้งเตือนสวยงาม
+ * - ใช้งานร่วมกับโครงสร้าง JOBS ของคุณ (id, title, shop_name)
  */
 
-(function () {
+(() => {
+
   const USERS_KEY = "pt_users";
   const JOBS_KEY = "pt_jobs";
-  const REVIEWS_KEY = "pt_reviews";
   const APPS_KEY = "pt_applications";
+  const REVIEWS_KEY = "pt_reviews";
   const SESSION_KEY = "pt_seeker_session";
 
   const reviewForm = document.getElementById("reviewForm");
@@ -21,65 +21,68 @@
   const logoutBtn = document.getElementById("logoutBtn");
 
   let currentUser = null;
-  let allReviews = [];
   let jobs = [];
-  let applications = [];
+  let apps = [];
+  let reviews = [];
 
   document.addEventListener("DOMContentLoaded", init);
 
   function init() {
-    // 🔐 โหลด session
+
+    // 🔐 เช็คการเข้าสู่ระบบ
     const email = localStorage.getItem(SESSION_KEY);
     if (!email) {
-      Swal.fire("กรุณาเข้าสู่ระบบก่อน", "", "warning").then(() => {
-        window.location.href = "../auth.html";
+      Swal.fire("ต้องเข้าสู่ระบบก่อน", "", "warning").then(() => {
+        location.href = "../auth.html";
       });
       return;
     }
 
     const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
-    currentUser = users.find((u) => u.email === email && u.role === "seeker");
+    currentUser = users.find(u => u.email === email && u.role === "seeker");
 
     if (!currentUser) {
-      Swal.fire("ไม่พบข้อมูลผู้ใช้", "กรุณาเข้าสู่ระบบใหม่", "error").then(() => {
+      Swal.fire("ผู้ใช้ไม่ถูกต้อง", "", "error").then(() => {
         localStorage.removeItem(SESSION_KEY);
-        window.location.href = "../auth.html";
+        location.href = "../auth.html";
       });
       return;
     }
 
+    // โหลดข้อมูลทั้งหมด
     jobs = JSON.parse(localStorage.getItem(JOBS_KEY) || "[]");
-    applications = JSON.parse(localStorage.getItem(APPS_KEY) || "[]");
-    allReviews = JSON.parse(localStorage.getItem(REVIEWS_KEY) || "[]");
+    apps = JSON.parse(localStorage.getItem(APPS_KEY) || "[]");
+    reviews = JSON.parse(localStorage.getItem(REVIEWS_KEY) || "[]");
 
     loadJobOptions();
     renderReviews();
 
     reviewForm.addEventListener("submit", handleSubmit);
-    logoutBtn.addEventListener("click", handleLogout);
+    logoutBtn.addEventListener("click", logout);
   }
 
-  // 🏪 โหลดงานที่ผู้ใช้เคยสมัคร
+  // 📌 โหลดงานที่ user เคยสมัคร
   function loadJobOptions() {
-    const myApps = applications.filter((a) => a.user_email === currentUser.email);
+
+    // apps เก็บเป็น applicant ไม่ใช่ user_email
+    const myApps = apps.filter(a => a.applicant === currentUser.email);
 
     if (myApps.length === 0) {
-      shopSelect.innerHTML = `<option value="">คุณยังไม่มีงานที่สมัคร</option>`;
+      shopSelect.innerHTML = `<option value="">คุณยังไม่เคยสมัครงาน</option>`;
       shopSelect.disabled = true;
       return;
     }
 
-    shopSelect.innerHTML = myApps
-      .map((app) => {
-        const job = jobs.find((j) => j.job_id === app.job_id);
-        return job
-          ? `<option value="${job.job_id}">${job.title} (${job.shop_name})</option>`
-          : "";
-      })
-      .join("");
+    shopSelect.disabled = false;
+
+    shopSelect.innerHTML = myApps.map(app => {
+      const job = jobs.find(j => j.id === app.job_id);
+      if (!job) return "";
+      return `<option value="${job.id}">${job.title} (${job.shop_name})</option>`;
+    }).join("");
   }
 
-  // 💾 เมื่อส่งฟอร์มรีวิว
+  // 📌 เมื่อส่งรีวิว
   function handleSubmit(e) {
     e.preventDefault();
 
@@ -92,46 +95,46 @@
       return;
     }
 
-    const job = jobs.find((j) => j.job_id === jobId);
+    const job = jobs.find(j => j.id === jobId);
     if (!job) {
       Swal.fire("ไม่พบข้อมูลงาน", "", "error");
       return;
     }
 
-    // ❌ ตรวจสอบว่ารีวิวซ้ำไหม
-    const existing = allReviews.find(
-      (r) => r.user_email === currentUser.email && r.job_id === jobId
+    // ❌ ป้องกันรีวิวซ้ำ
+    const exists = reviews.find(
+      r => r.user_email === currentUser.email && r.job_id === jobId
     );
 
-    if (existing) {
-      Swal.fire("คุณได้รีวิวงานนี้ไปแล้ว", "", "info");
+    if (exists) {
+      Swal.fire("คุณรีวิวงานนี้ไปแล้ว", "", "info");
       return;
     }
 
     const newReview = {
-      id: `rev_${Date.now()}`,
+      id: "rev_" + Date.now(),
       job_id: jobId,
       user_email: currentUser.email,
-      user_name: currentUser.name || "ไม่ระบุชื่อ",
-      shop_name: job.shop_name || "ไม่ระบุร้าน",
-      job_title: job.title || "ไม่ระบุชื่องาน",
+      user_name: currentUser.name || "",
+      shop_name: job.shop_name,
+      job_title: job.title,
       rating,
       comment,
-      date: new Date().toISOString(),
+      date: new Date().toISOString()
     };
 
-    allReviews.push(newReview);
-    localStorage.setItem(REVIEWS_KEY, JSON.stringify(allReviews));
+    reviews.push(newReview);
+    localStorage.setItem(REVIEWS_KEY, JSON.stringify(reviews));
 
-    Swal.fire("ส่งรีวิวเรียบร้อย ✅", "", "success").then(() => {
+    Swal.fire("ส่งรีวิวสำเร็จ", "", "success").then(() => {
       reviewForm.reset();
       renderReviews();
     });
   }
 
-  // 💬 แสดงเฉพาะรีวิวของผู้ใช้
+  // 📌 แสดงรีวิวทั้งหมดของผู้ใช้
   function renderReviews() {
-    const myReviews = allReviews.filter((r) => r.user_email === currentUser.email);
+    const myReviews = reviews.filter(r => r.user_email === currentUser.email);
 
     if (myReviews.length === 0) {
       emptyState.style.display = "block";
@@ -143,37 +146,33 @@
 
     myReviews.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    reviewList.innerHTML = myReviews
-      .map(
-        (r) => `
-        <div class="review-card">
-          <div class="review-header">
-            <div class="review-user">${r.shop_name}</div>
-            <div class="review-rating">${"⭐".repeat(r.rating)}</div>
-          </div>
-          <div class="review-comment">${r.comment || "<i>ไม่มีความคิดเห็น</i>"}</div>
-          <div class="review-date">${formatDate(r.date)}</div>
+    reviewList.innerHTML = myReviews.map(r => `
+      <div class="review-card">
+        <div class="review-header">
+          <div class="review-user">${r.shop_name}</div>
+          <div class="review-rating">${"⭐".repeat(r.rating)}</div>
         </div>
-      `
-      )
-      .join("");
+        <div class="review-comment">${r.comment || "<i>ไม่มีความคิดเห็น</i>"}</div>
+        <div class="review-date">${formatDate(r.date)}</div>
+      </div>
+    `).join("");
   }
 
-  // 🧭 ออกจากระบบ
-  function handleLogout() {
-    localStorage.removeItem(SESSION_KEY);
-    Swal.fire("ออกจากระบบเรียบร้อย", "", "success").then(() => {
-      window.location.href = "../auth.html";
-    });
-  }
-
-  // 🗓 ฟังก์ชันแปลงวันที่ให้อ่านง่าย
+  // 📌 แปลงวันที่
   function formatDate(dateStr) {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("th-TH", {
+    return new Date(dateStr).toLocaleDateString("th-TH", {
       year: "numeric",
       month: "short",
-      day: "numeric",
+      day: "numeric"
     });
   }
+
+  // 📌 ออกจากระบบ
+  function logout() {
+    localStorage.removeItem(SESSION_KEY);
+    Swal.fire("ออกจากระบบแล้ว", "", "success").then(() => {
+      location.href = "../auth.html";
+    });
+  }
+
 })();

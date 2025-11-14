@@ -2,261 +2,284 @@
 <html lang="th">
 <head>
   <meta charset="utf-8">
-  <title>ใบสมัครของฉัน | Part-time Match</title>
+  <title>📄 ใบสมัครของฉัน | Part-time Match</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap');
     body {
-      font-family: "Prompt", sans-serif;
-      background: #f6f8fc;
-      margin: 0;
-      min-height: 100vh;
+      margin:0;
+      padding:0;
+      background:#eef1f9;
+      font-family:"Prompt", sans-serif;
+      display:flex;
+      height:100vh;
+      overflow:hidden;
     }
-    nav {
-      background: linear-gradient(90deg, #667eea, #764ba2);
-      color: #fff;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 24px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.1);
+
+    .sidebar {
+      width:240px;
+      background:#ffffff;
+      border-right:1px solid #dfe3ef;
+      padding:20px 0;
+      display:flex;
+      flex-direction:column;
     }
-    nav .left a {
-      color: #fff;
-      text-decoration: none;
-      margin-right: 20px;
-      font-weight: 500;
-      transition: opacity .2s;
+
+    .logo {
+      font-size:20px;
+      font-weight:600;
+      text-align:center;
+      color:#444;
+      margin-bottom:24px;
     }
-    nav .left a:hover { opacity: .8; }
-    nav button {
-      background: rgba(255,255,255,0.2);
-      border: none;
-      color: white;
-      border-radius: 8px;
-      padding: 8px 14px;
-      cursor: pointer;
-      font-size: 14px;
+
+    .menu {
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      padding:0 16px;
     }
-    nav button:hover { background: rgba(255,255,255,0.35); }
-    .container {
-      max-width: 900px;
-      margin: 40px auto;
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-      padding: 30px 40px;
-      animation: fadeIn 0.4s ease-in-out;
+
+    .menu a {
+      padding:10px 14px;
+      text-decoration:none;
+      color:#555;
+      font-size:15px;
+      border-radius:8px;
+      transition:0.2s;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(15px); }
-      to { opacity: 1; transform: translateY(0); }
+
+    .menu a.active {
+      background:#eef2ff;
+      color:#4c55d9;
+      font-weight:600;
     }
-    h2 {
-      text-align: center;
-      color: #333;
-      margin-bottom: 30px;
-      font-weight: 600;
-      letter-spacing: 0.5px;
+
+    .menu a:hover {
+      background:#f4f5ff;
     }
-    .application-card {
-      background: #f9faff;
-      border: 1px solid #e2e6f3;
-      border-radius: 15px;
-      padding: 20px 25px;
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: transform .2s, box-shadow .2s;
+
+    .logout-area {
+      margin-top:auto;
+      padding:20px;
     }
-    .application-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 8px 18px rgba(0,0,0,0.08);
+
+    .btn-logout {
+      width:100%;
+      border:none;
+      padding:10px;
+      background:#d9534f;
+      color:#fff;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:14px;
     }
-    .job-info { flex: 1; }
-    .job-info h3 {
-      margin: 0 0 5px;
-      color: #333;
-      font-size: 18px;
-      font-weight: 600;
+
+    .main {
+      flex:1;
+      overflow-y:auto;
+      padding:30px 40px;
     }
-    .job-info p {
-      margin: 2px 0;
-      color: #555;
-      font-size: 14px;
+
+    .page-title {
+      font-size:26px;
+      color:#222;
+      margin:0;
+      font-weight:600;
     }
-    .status {
-      font-weight: 500;
-      padding: 6px 12px;
-      border-radius: 8px;
-      font-size: 13px;
-      display: inline-block;
-      text-align: center;
-      min-width: 110px;
+
+    .subtitle {
+      color:#666;
+      margin-top:4px;
+      font-size:14px;
     }
-    .status.pending { background: #fff7e6; color: #b58500; }
-    .status.approved { background: #e8f9f0; color: #2f8f4e; }
-    .status.rejected { background: #ffeaea; color: #d03c3c; }
-    button.cancel-btn {
-      background: #f0f1ff;
-      border: none;
-      color: #444;
-      border-radius: 8px;
-      padding: 8px 14px;
-      cursor: pointer;
-      font-size: 14px;
-      transition: all .2s;
-      margin-left: 10px;
+
+    .app-list {
+      margin-top:28px;
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+      gap:18px;
     }
-    button.cancel-btn:hover {
-      background: #e0e2ff;
-      color: #222;
+
+    .app-card {
+      background:#fff;
+      padding:18px;
+      border-radius:14px;
+      box-shadow:0 4px 14px rgba(0,0,0,0.08);
+      transition:0.2s;
     }
-    .no-data {
-      text-align: center;
-      color: #888;
-      font-size: 15px;
-      margin-top: 40px;
+
+    .status-badge {
+      display:inline-block;
+      padding:4px 10px;
+      border-radius:8px;
+      font-size:13px;
+      font-weight:600;
+      color:#fff;
+    }
+
+    .s-pending { background:#f2c94c; }
+    .s-approved { background:#27ae60; }
+    .s-rejected { background:#eb5757; }
+
+    .cancel-btn {
+      margin-top:12px;
+      padding:10px;
+      width:100%;
+      background:#d9534f;
+      border:none;
+      border-radius:10px;
+      color:#fff;
+      cursor:pointer;
+      font-size:15px;
     }
   </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
+
 <body>
-  <nav>
-    <div class="left">
+
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="logo">Part-time Match</div>
+
+    <div class="menu">
       <a href="profile.html">โปรไฟล์</a>
-      <a href="jobs.html">ค้นหางาน</a>
-      <a href="applications.html" style="font-weight:600;text-decoration:underline;">ใบสมัคร</a>
-      <a href="matching.html">การจับคู่</a>
+      <a href="jobs.html">หางาน</a>
+      <a href="applications.html" class="active">ใบสมัคร</a>
+      <a href="matching.html">AI Matching</a>
       <a href="reviews.html">รีวิว</a>
     </div>
-    <button id="logoutBtn">ออกจากระบบ</button>
-  </nav>
 
-  <div class="container">
-    <h2>📄 ใบสมัครของฉัน</h2>
-    <div id="applicationsList"></div>
+    <div class="logout-area">
+      <button id="logoutBtn" class="btn-logout">ออกจากระบบ</button>
+    </div>
   </div>
 
-  <!-- SweetAlert -->
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script>
-    (function() {
-      // 🔑 คีย์ LocalStorage
-      const SESSION_SEEKER = "pt_seeker_session";
-      const SESSION_SHOP   = "pt_shop_session";
-      const APPS_KEY       = "pt_applications";
-      const listContainer  = document.getElementById("applicationsList");
+  <!-- Main -->
+  <div class="main">
+    <h2 class="page-title">📄 ใบสมัครของฉัน</h2>
+    <p class="subtitle">ประวัติการสมัครงานทั้งหมด</p>
 
-      // 🧭 ตรวจสอบการเข้าสู่ระบบ
-      const email = localStorage.getItem(SESSION_SEEKER) || localStorage.getItem(SESSION_SHOP);
-      if (!email) {
-        Swal.fire({
-          icon: "warning",
-          title: "ยังไม่ได้เข้าสู่ระบบ",
-          text: "กรุณาเข้าสู่ระบบก่อนเข้าใช้งาน",
-          confirmButtonText: "ตกลง"
-        }).then(() => window.location.href = "../auth.html");
-        return;
-      }
+    <div id="appList" class="app-list"></div>
 
-      // 📥 โหลดใบสมัครทั้งหมดของผู้ใช้
-      function loadApplications() {
-        const apps = JSON.parse(localStorage.getItem(APPS_KEY) || "[]");
-        return apps.filter(a => a.applicant === email);
-      }
+    <p id="emptyState" style="text-align:center;color:#888;margin-top:20px;display:none;">
+      ❗ คุณยังไม่ได้สมัครงานใดเลย
+    </p>
+  </div>
 
-      // 📤 แสดงผลใบสมัคร
-      function renderApplications() {
-        const apps = loadApplications();
-        listContainer.innerHTML = "";
 
-        if (apps.length === 0) {
-          listContainer.innerHTML = `<p class="no-data fade-in">คุณยังไม่มีใบสมัครงาน</p>`;
-          return;
-        }
+<script>
 
-        apps.sort((a,b)=> new Date(b.date) - new Date(a.date));
+//
+// 🔒 1) ตรวจสอบเข้าสู่ระบบก่อนโหลดหน้า
+//
+const session = JSON.parse(localStorage.getItem("pt_seeker_session") || "null");
+if (!session) {
+  Swal.fire({
+    icon: "warning",
+    title: "กรุณาเข้าสู่ระบบก่อน",
+    confirmButtonText: "ไปหน้าเข้าสู่ระบบ"
+  }).then(() => {
+    location.href = "../auth.html";
+  });
+}
 
-        apps.forEach(app => {
-          const card = document.createElement("div");
-          card.className = "application-card fade-in";
+//
+// 2) โหลดข้อมูลใบสมัคร
+//
+const APPLIED_KEY = "pt_applications";
+let apps = JSON.parse(localStorage.getItem(APPLIED_KEY) || "[]");
 
-          const info = document.createElement("div");
-          info.className = "job-info";
-          info.innerHTML = `
-            <h3>${app.job_title}</h3>
-            <p>สถานที่: ${app.location || "-"}</p>
-            <p>วันที่สมัคร: ${new Date(app.date).toLocaleDateString('th-TH')}</p>
-          `;
+function renderApps() {
+  const list = document.getElementById("appList");
+  const empty = document.getElementById("emptyState");
 
-          const right = document.createElement("div");
-          const status = document.createElement("span");
-          status.className = "status " + app.status;
-          status.textContent = 
-            app.status === "pending" ? "⏳ รอดำเนินการ" :
-            app.status === "approved" ? "✅ ผ่านการพิจารณา" :
-            "❌ ไม่ผ่าน";
+  list.innerHTML = "";
+  empty.style.display = apps.length === 0 ? "block" : "none";
 
-          right.appendChild(status);
+  apps.forEach(app => {
+    const card = document.createElement("div");
+    card.className = "app-card";
 
-          if (app.status === "pending") {
-            const cancelBtn = document.createElement("button");
-            cancelBtn.className = "cancel-btn";
-            cancelBtn.textContent = "ยกเลิก";
-            cancelBtn.onclick = () => cancelApplication(app.id);
-            right.appendChild(cancelBtn);
-          }
+    const statusClass =
+      app.status === "approved" ? "s-approved" :
+      app.status === "rejected" ? "s-rejected" : "s-pending";
 
-          card.appendChild(info);
-          card.appendChild(right);
-          listContainer.appendChild(card);
-        });
-      }
+    const statusText =
+      app.status === "approved" ? "รับเข้าทำงานแล้ว" :
+      app.status === "rejected" ? "ไม่ผ่านการคัดเลือก" : "รอตรวจสอบ";
 
-      // ❌ ฟังก์ชันยกเลิกใบสมัคร
-      function cancelApplication(id) {
-        Swal.fire({
-          title: "ยืนยันการยกเลิก?",
-          text: "คุณแน่ใจว่าต้องการยกเลิกใบสมัครนี้หรือไม่?",
-          icon: "warning",
-          showCancelButton: true,
-          confirmButtonText: "ใช่, ยกเลิกเลย",
-          cancelButtonText: "ไม่"
-        }).then(result => {
-          if (result.isConfirmed) {
-            let apps = JSON.parse(localStorage.getItem(APPS_KEY) || "[]");
-            apps = apps.filter(a => a.id !== id);
-            localStorage.setItem(APPS_KEY, JSON.stringify(apps));
-            renderApplications();
-            Swal.fire("ยกเลิกแล้ว", "คุณได้ยกเลิกใบสมัครเรียบร้อย", "success");
-          }
-        });
-      }
+    const date = new Date(app.applied_at).toLocaleString("th-TH");
 
-      // 🚪 ออกจากระบบ
-      document.getElementById("logoutBtn").addEventListener("click", () => {
-        Swal.fire({
-          title: "ออกจากระบบ?",
-          text: "คุณแน่ใจหรือไม่?",
-          icon: "question",
-          showCancelButton: true,
-          confirmButtonText: "ออกจากระบบ",
-          cancelButtonText: "ยกเลิก"
-        }).then(result => {
-          if (result.isConfirmed) {
-            localStorage.removeItem(SESSION_SEEKER);
-            localStorage.removeItem(SESSION_SHOP);
-            Swal.fire("ออกจากระบบสำเร็จ", "", "success").then(() => {
-              window.location.href = "../auth.html";
-            });
-          }
-        });
-      });
+    card.innerHTML = `
+      <h3>${app.job_title}</h3>
+      <p>🏪 ${app.shop_name}</p>
+      <p>📍 ${app.location}</p>
+      <p>💰 ${app.wage} บาท/ชม.</p>
 
-      // 🧾 โหลดข้อมูลตอนเริ่มต้น
-      renderApplications();
-    })();
-  </script>
+      <p><strong>วันที่สมัคร:</strong> ${date}</p>
+
+      <span class="status-badge ${statusClass}">
+        ${statusText}
+      </span>
+
+      <button class="cancel-btn" data-id="${app.id}">ยกเลิกใบสมัคร</button>
+    `;
+
+    card.querySelector(".cancel-btn").onclick = () =>
+      cancelApplication(app.id);
+
+    list.appendChild(card);
+  });
+}
+
+//
+// 3) ฟังก์ชันยกเลิกใบสมัคร
+//
+function cancelApplication(id) {
+  Swal.fire({
+    title: "ยกเลิกใบสมัคร?",
+    text: "คุณต้องการลบใบสมัครนี้หรือไม่",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "ยกเลิกใบสมัคร",
+    cancelButtonText: "ปิด"
+  }).then(res => {
+    if (!res.isConfirmed) return;
+
+    apps = apps.filter(a => a.id !== id);
+    localStorage.setItem(APPLIED_KEY, JSON.stringify(apps));
+
+    renderApps();
+
+    Swal.fire("ลบแล้ว", "ใบสมัครถูกยกเลิกเรียบร้อย", "success");
+  });
+}
+
+//
+// 4) ออกจากระบบ
+//
+document.getElementById("logoutBtn").onclick = () => {
+  Swal.fire({
+    title: "ออกจากระบบ?",
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonText: "ออกจากระบบ",
+    cancelButtonText: "ยกเลิก"
+  }).then(res => {
+    if (res.isConfirmed) {
+      localStorage.removeItem("pt_seeker_session");
+      location.href = "../auth.html";
+    }
+  });
+};
+
+renderApps();
+</script>
+
 </body>
 </html>

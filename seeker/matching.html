@@ -2,280 +2,244 @@
 <html lang="th">
 <head>
   <meta charset="utf-8">
-  <title>การจับคู่งาน | Part-time Match</title>
+  <title>AI Matching | Part-time Match</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="stylesheet" href="../common/css/style.css">
+
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+
   <style>
     body {
-      background: #f6f8fc;
-      font-family: "Prompt", sans-serif;
-      margin: 0;
-      min-height: 100vh;
+      margin:0; padding:0; background:#eef1f9;
+      font-family:"Prompt", sans-serif;
+      display:flex;
+      height:100vh;
+      overflow:hidden;
     }
 
-    nav {
-      background: linear-gradient(90deg, #667eea, #764ba2);
-      color: #fff;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 24px;
+    /* ---------------- Sidebar ---------------- */
+    .sidebar {
+      width:240px; background:#ffffff;
+      border-right:1px solid #dfe3ef;
+      padding:20px 0;
+      display:flex; flex-direction:column;
     }
 
-    nav .left a {
-      color: #fff;
-      text-decoration: none;
-      margin-right: 20px;
-      font-weight: 500;
-      transition: opacity .2s;
+    .logo {
+      font-size:20px; font-weight:600; text-align:center;
+      color:#444; margin-bottom:24px;
     }
 
-    nav .left a.active {
-      text-decoration: underline;
-      opacity: 0.85;
+    .menu {
+      display:flex; flex-direction:column;
+      gap:6px; padding:0 16px;
     }
 
-    nav button {
-      background: rgba(255,255,255,0.2);
-      border: none;
-      color: white;
-      border-radius: 8px;
-      padding: 8px 14px;
-      cursor: pointer;
-      font-size: 14px;
+    .menu a {
+      padding:10px 14px;
+      text-decoration:none;
+      color:#555;
+      font-size:15px;
+      border-radius:8px;
+      transition:0.2s;
     }
 
-    .container {
-      max-width: 900px;
-      margin: 40px auto;
-      background: white;
-      border-radius: 20px;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      padding: 30px 40px;
-      animation: fadeIn 0.4s ease-in-out;
+    .menu a.active {
+      background:#eef2ff;
+      color:#4c55d9;
+      font-weight:600;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
+    .menu a:hover { background:#f4f5ff; }
+
+    .logout-area {
+      margin-top:auto;
+      padding:20px;
     }
 
-    .matching-header {
-      text-align: center;
-      margin-bottom: 30px;
+    .btn-logout {
+      width:100%; border:none; padding:10px;
+      background:#d9534f; color:#fff; border-radius:8px;
+      cursor:pointer; font-size:14px;
     }
 
-    .matching-header h2 {
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 6px;
+    /* -------------- Main Content -------------- */
+    .main {
+      flex:1; overflow-y:auto;
+      padding:30px 40px;
     }
 
-    .matching-header p {
-      color: #666;
-      font-size: 15px;
+    .page-title {
+      font-size:26px; color:#222; margin:0;
+      font-weight:600;
+    }
+    .subtitle {
+      color:#666; margin-top:4px; font-size:14px;
     }
 
-    .job-card {
-      background: #f9faff;
-      border: 1px solid #e2e6f3;
-      border-radius: 15px;
-      padding: 20px 25px;
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      transition: transform .2s, box-shadow .2s;
+    /* -------------- Match Cards -------------- */
+    .match-list {
+      margin-top:28px;
+      display:flex;
+      flex-direction:column;
+      gap:16px;
     }
 
-    .job-card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    .match-card {
+      background:#fff;
+      border-radius:14px;
+      box-shadow:0 4px 14px rgba(0,0,0,0.08);
+      padding:18px;
+      display:flex;
+      align-items:center;
+      gap:18px;
+      transition:0.15s;
+    }
+    .match-card:hover { transform:translateX(6px); }
+
+    .thumb {
+      width:86px; height:86px;
+      background:#e8ebff;
+      border-radius:12px;
+      object-fit:cover;
     }
 
-    .job-info {
-      flex: 1;
-      margin-right: 20px;
+    .info {
+      flex:1;
     }
 
     .job-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #333;
-      margin-bottom: 4px;
+      font-size:18px; font-weight:600; margin:0 0 4px;
+    }
+    .job-shop { color:#666; font-size:14px; }
+
+    .match-score {
+      background:#4c55d9;
+      padding:4px 10px;
+      color:#fff; font-size:13px;
+      border-radius:20px;
+      display:inline-block;
+      margin-top:8px;
     }
 
-    .job-shop {
-      font-size: 14px;
-      color: #777;
-      margin-bottom: 6px;
+    .actions {
+      display:flex; flex-direction:column; gap:8px; 
     }
 
-    .job-desc {
-      font-size: 14px;
-      color: #555;
-      line-height: 1.4;
-      margin-bottom: 8px;
+    .btn-view {
+      background:#fff;
+      border:1px solid #cfd3ef;
+      color:#4c55d9;
+      padding:7px 12px;
+      border-radius:8px;
+      cursor:pointer;
+    }
+    .btn-apply {
+      background:linear-gradient(90deg,#667eea,#764ba2);
+      border:none; color:#fff;
+      padding:7px 14px; border-radius:24px;
+      cursor:pointer;
     }
 
-    .job-meta {
-      font-size: 13px;
-      color: #777;
+    /* -------------- Modal (slide-up) -------------- */
+    .modal {
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.45);
+      display:flex;
+      justify-content:center;
+      align-items:flex-end;
+      visibility:hidden;
+      opacity:0;
+      transition:0.25s;
+    }
+    .modal.active {
+      visibility:visible;
+      opacity:1;
     }
 
-    .job-actions button {
-      margin-left: 10px;
-      border: none;
-      border-radius: 8px;
-      padding: 8px 14px;
-      font-size: 14px;
-      cursor: pointer;
-      transition: background .2s, transform .2s;
+    .modal-box {
+      width:100%;
+      max-width:520px;
+      background:#fff;
+      border-radius:18px 18px 0 0;
+      padding:24px;
+      box-shadow:0 -4px 24px rgba(0,0,0,0.2);
+      transform:translateY(120px);
+      transition:0.25s;
+    }
+    .modal.active .modal-box {
+      transform:translateY(0);
     }
 
-    .btn-primary {
-      background: linear-gradient(90deg, #667eea, #764ba2);
-      color: white;
-    }
-    .btn-primary:hover { opacity: 0.9; }
-
-    .btn-outline {
-      background: white;
-      color: #667eea;
-      border: 1px solid #667eea;
-    }
-    .btn-outline:hover {
-      background: #f0f2ff;
+    .modal-close {
+      position:absolute;
+      top:12px; right:20px;
+      font-size:22px; cursor:pointer;
+      color:#777;
     }
 
-    .empty-state {
-      text-align: center;
-      color: #666;
-      font-size: 15px;
-      margin-top: 40px;
+    .modal-thumb {
+      width:100%; max-height:240px;
+      border-radius:14px; object-fit:cover;
+      margin-bottom:16px;
+      display:none;
     }
   </style>
 </head>
+
 <body>
 
-  <nav>
-    <div class="left">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="logo">Part-time Match</div>
+
+    <div class="menu">
       <a href="profile.html">โปรไฟล์</a>
       <a href="jobs.html">ค้นหางาน</a>
       <a href="applications.html">ใบสมัคร</a>
-      <a href="matching.html" class="active">การจับคู่</a>
+      <a href="matching.html" class="active">AI Matching</a>
       <a href="reviews.html">รีวิว</a>
     </div>
-    <button id="logoutBtn">ออกจากระบบ</button>
-  </nav>
 
-  <div class="container">
-    <div class="matching-header">
-      <h2>🎯 งานที่เหมาะกับคุณ</h2>
-      <p>ระบบแนะนำงานพาร์ทไทม์ที่ใกล้เคียงกับทักษะและประสบการณ์ของคุณ</p>
-    </div>
-
-    <div id="matchList"></div>
-    <div id="emptyState" class="empty-state" style="display:none;">
-      <p>ยังไม่มีงานที่ตรงกับคุณในตอนนี้</p>
+    <div class="logout-area">
+      <button id="logoutBtn" class="btn-logout">ออกจากระบบ</button>
     </div>
   </div>
 
-  <script src="../common/js/utils.js"></script>
-  <script src="../common/js/storage.js"></script>
+  <!-- Main -->
+  <div class="main">
+    <h2 class="page-title">🎯 งานที่เหมาะกับคุณ</h2>
+    <p class="subtitle">ระบบ AI วิเคราะห์โปรไฟล์คุณและจัดคะแนนความเหมาะสม</p>
 
-  <script>
-    (() => {
-      const SESSION_SEEKER = "pt_seeker_session";
-      const SESSION_SHOP   = "pt_shop_session";
-      const email = localStorage.getItem(SESSION_SEEKER) || localStorage.getItem(SESSION_SHOP);
+    <div id="matchList" class="match-list"></div>
+    <div id="emptyState" style="text-align:center; color:#777; margin-top:20px; display:none;">
+      ยังไม่มีงานที่เหมาะสมตอนนี้
+    </div>
+  </div>
 
-      if (!email) {
-        alert("กรุณาเข้าสู่ระบบก่อน");
-        window.location.href = "../auth.html";
-        return;
-      }
+  <!-- Modal -->
+  <div id="jobModal" class="modal">
+    <div class="modal-box">
+      <span id="closeModal" class="modal-close">&times;</span>
 
+      <img id="modalThumb" class="modal-thumb">
 
-      const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
-      const user = users.find(u => u.email === email);
-      if (!user) {
-        alert("ไม่พบข้อมูลผู้ใช้");
-        localStorage.removeItem(SESSION_KEY);
-        window.location.href = "../auth.html";
-        return;
-      }
+      <h3 id="modalTitle" style="margin:0;"></h3>
+      <p><strong>ร้าน:</strong> <span id="modalShop"></span></p>
+      <p><strong>ค่าจ้าง:</strong> <span id="modalWage"></span> บาท/ชม.</p>
+      <p><strong>สถานที่:</strong> <span id="modalLocation"></span></p>
 
-      const jobs = JSON.parse(localStorage.getItem(JOBS_KEY) || "[]");
+      <h4 style="margin-top:14px;">รายละเอียดงาน</h4>
+      <p id="modalDesc"></p>
 
-      // 🔍 Matching Logic — simple but effective
-      const matchedJobs = jobs.filter(job => {
-        const skillMatch = user.skills && job.skills
-          ? job.skills.some(s => user.skills.toLowerCase().includes(s.toLowerCase()))
-          : false;
+      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:18px;">
+        <button id="modalCloseBtn" class="btn-view">ปิด</button>
+        <button id="modalApplyBtn" class="btn-apply">สมัครงานนี้</button>
+      </div>
+    </div>
+  </div>
 
-        const expMatch = user.experience && job.experience
-          ? user.experience.toLowerCase().includes(job.experience.toLowerCase())
-          : false;
-
-        return skillMatch || expMatch;
-      });
-
-      if (matchedJobs.length === 0) {
-        emptyState.style.display = "block";
-        return;
-      }
-
-      matchedJobs.forEach(job => {
-        const div = document.createElement('div');
-        div.className = 'job-card';
-        div.innerHTML = `
-          <div class="job-info">
-            <div class="job-title">${job.title}</div>
-            <div class="job-shop">${job.shop_name}</div>
-            <div class="job-desc">${job.description || "ไม่มีรายละเอียด"}</div>
-            <div class="job-meta">📍 ${job.location} · 💰 ${job.salary} บาท/ชั่วโมง</div>
-          </div>
-          <div class="job-actions">
-            <button class="btn-outline" onclick="viewDetails('${job.job_id}')">รายละเอียด</button>
-            <button class="btn-primary" onclick="applyJob('${job.job_id}')">สมัครงาน</button>
-          </div>
-        `;
-        matchList.appendChild(div);
-      });
-
-      // 🔹 ฟังก์ชันดูรายละเอียดงาน
-      window.viewDetails = jobId => {
-        alert("เปิดรายละเอียดงาน ID: " + jobId);
-        // TODO: redirect ไป job-details.html หรือเปิด modal
-      };
-
-      // 🔹 ฟังก์ชันสมัครงาน
-      window.applyJob = jobId => {
-        const apps = JSON.parse(localStorage.getItem(APPS_KEY) || "[]");
-        if (apps.some(a => a.job_id === jobId && a.user_email === email)) {
-          alert("คุณได้สมัครงานนี้แล้ว");
-          return;
-        }
-
-        apps.push({
-          app_id: Date.now(),
-          job_id: jobId,
-          user_email: email,
-          status: "pending",
-          date_applied: new Date().toISOString()
-        });
-
-        localStorage.setItem(APPS_KEY, JSON.stringify(apps));
-        alert("สมัครงานเรียบร้อย ✅");
-      };
-
-      // 🔹 Logout
-      document.getElementById('logoutBtn').addEventListener('click', () => {
-        localStorage.removeItem(SESSION_KEY);
-        window.location.href = "../auth.html";
-      });
-    })();
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="./js/matching.js"></script>
 </body>
 </html>

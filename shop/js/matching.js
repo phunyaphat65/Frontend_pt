@@ -1,8 +1,12 @@
 // -------------------------------------------------------
-// shop/js/matching.js (เวอร์ชันปรับปรุงล่าสุด)
-// ระบบจับคู่แรงงานที่เหมาะสมกับงานของร้านค้า
+// shop/js/matching.js (PRO VERSION)
+// ระบบจับคู่แรงงานแบบสมบูรณ์สำหรับร้านค้า
 // -------------------------------------------------------
 document.addEventListener("DOMContentLoaded", () => {
+
+  // ---------------------------------------------------
+  // CONSTANTS & STORAGE KEYS
+  // ---------------------------------------------------
   const SESSION_KEY = "pt_shop_session";
   const USERS_KEY = "pt_users";
   const JOBS_KEY = "pt_jobs";
@@ -13,40 +17,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoutBtn = document.getElementById("logoutBtn");
 
   // ---------------------------------------------------
-  // 🧭 ตรวจสอบการเข้าสู่ระบบ
+  // 1) ตรวจสอบ Session ร้านค้า
   // ---------------------------------------------------
   const email = localStorage.getItem(SESSION_KEY);
-  if (!email) {
-    Swal.fire({
-      icon: "warning",
-      title: "ยังไม่ได้เข้าสู่ระบบ",
-      text: "กรุณาเข้าสู่ระบบก่อนเข้าหน้านี้",
-      confirmButtonText: "ตกลง"
-    }).then(() => (window.location.href = "../auth.html"));
-    return;
-  }
+  if (!email) return redirectLogin("กรุณาเข้าสู่ระบบก่อนเข้าหน้านี้");
 
-  const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
+  const users = load(USERS_KEY);
   const shop = users.find(u => u.email === email && u.role === "shop");
   if (!shop) {
-    Swal.fire({
-      icon: "error",
-      title: "บัญชีนี้ไม่ใช่ร้านค้า",
-      confirmButtonText: "กลับสู่หน้าเข้าสู่ระบบ"
-    }).then(() => {
-      localStorage.removeItem(SESSION_KEY);
-      window.location.href = "../auth.html";
-    });
-    return;
+    localStorage.removeItem(SESSION_KEY);
+    return redirectLogin("บัญชีนี้ไม่ใช่ร้านค้า");
   }
 
   // ---------------------------------------------------
-  // 📋 โหลดงานของร้าน
+  // 2) โหลดข้อมูลจำเป็น
   // ---------------------------------------------------
-  const jobs = JSON.parse(localStorage.getItem(JOBS_KEY) || "[]").filter(
-    j => j.shop_email === email
-  );
+  const jobs = load(JOBS_KEY).filter(j => j.shop_email === email);
   const seekers = users.filter(u => u.role === "seeker");
+  const applications = load(APPS_KEY);
 
   if (jobs.length === 0) {
     emptyMatch.style.display = "block";
@@ -55,170 +43,202 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // ---------------------------------------------------
-  // 🧮 ฟังก์ชันคำนวณคะแนนการจับคู่ (0–100)
+  // UTILITIES
+  // ---------------------------------------------------
+  function load(key) {
+    return JSON.parse(localStorage.getItem(key) || "[]");
+  }
+
+  function redirectLogin(msg) {
+    Swal.fire({ icon: "warning", title: msg }).then(() => {
+      window.location.href = "../auth.html";
+    });
+  }
+
+  function distanceKm(a, b) {
+    if (!a || !b || !a.lat || !a.lng || !b.lat || !b.lng) return null;
+
+    const R = 6371;
+    const dLat = (b.lat - a.lat) * Math.PI / 180;
+    const dLng = (b.lng - a.lng) * Math.PI / 180;
+
+    const lat1 = a.lat * Math.PI / 180;
+    const lat2 = b.lat * Math.PI / 180;
+
+    const h = Math.sin(dLat/2)**2 +
+              Math.sin(dLng/2)**2 * Math.cos(lat1) * Math.cos(lat2);
+
+    return 2 * R * Math.asin(Math.sqrt(h));
+  }
+
+  // ---------------------------------------------------
+  // 3) ระบบคำนวณความเหมาะสมแบบมืออาชีพ (0–100)
   // ---------------------------------------------------
   function calcMatchScore(job, seeker) {
     let score = 0;
 
-    // ✅ ค่าจ้าง
-    if (seeker.expected_wage && job.wage >= seeker.expected_wage) score += 30;
-    else if (!seeker.expected_wage) score += 15;
-
-    // ✅ สถานที่ (ตรวจคำเหมือน)
-    if (seeker.location && job.location.includes(seeker.location)) score += 30;
-
-    // ✅ ทักษะ (keyword match)
-    if (Array.isArray(seeker.skills) && job.description) {
-      const matched = seeker.skills.filter(s =>
-        job.description.toLowerCase().includes(s.toLowerCase())
-      );
-      score += matched.length * 10;
+    // ① ค่าแรง (30 คะแนน)
+    if (seeker.expected_wage) {
+      if (job.wage >= seeker.expected_wage) score += 30;
+      else score += Math.max(0, 15 - (seeker.expected_wage - job.wage) * 0.5);
     }
 
-    return Math.min(score, 100);
+    // ② ระยะทาง (20 คะแนน)
+    if (job.location_pin && seeker.pin) {
+      const dist = distanceKm(job.location_pin, seeker.pin);
+      if (dist != null) {
+        if (dist <= 2) score += 20;
+        else if (dist <= 5) score += 15;
+        else if (dist <= 10) score += 5;
+      }
+    }
+
+    // ③ ทักษะ (30 คะแนน)
+    if (Array.isArray(seeker.skills)) {
+      const matched = seeker.skills.filter(s =>
+        (job.description || "").toLowerCase().includes(s.toLowerCase())
+      );
+      score += Math.min(30, matched.length * 10);
+    }
+
+    // ④ วันเริ่มงาน (20 คะแนน)
+    if (job.start_date && seeker.available_date) {
+      const js = new Date(job.start_date);
+      const ss = new Date(seeker.available_date);
+
+      if (ss <= js) score += 20;
+      else score += Math.max(0, 20 - (ss - js) / (1000 * 3600 * 24));
+    }
+
+    return Math.min(100, Math.round(score));
   }
 
   // ---------------------------------------------------
-  // 🧾 แสดงรายการจับคู่
+  // 4) แสดงผลรายการจับคู่
   // ---------------------------------------------------
   function renderMatching() {
     matchContainer.innerHTML = "";
-    let totalMatches = 0;
+    let found = 0;
 
     jobs.forEach(job => {
-      // จัดลำดับผู้สมัครที่ตรง
-      const matchedSeekers = seekers
-        .map(seeker => ({
-          ...seeker,
-          score: calcMatchScore(job, seeker)
-        }))
-        .filter(s => s.score >= 50) // กำหนดเกณฑ์ขั้นต่ำ
+      const matched = seekers
+        .map(s => ({ ...s, score: calcMatchScore(job, s) }))
+        .filter(s => s.score >= 50)
         .sort((a, b) => b.score - a.score);
 
-      if (matchedSeekers.length === 0) return;
+      if (matched.length === 0) return;
 
-      totalMatches++;
+      found++;
 
       const section = document.createElement("div");
       section.className = "job-section";
+
       section.innerHTML = `
         <div class="job-header">
           <h3>${job.title}</h3>
-          <span>📍 ${job.location} | 💰 ${job.wage} บาท/ชม.</span>
+          <span>
+            📍 ${job.location} | 💰 ${job.wage} บาท/ชม.
+            <br>📅 เริ่มงาน: ${job.start_date || "ไม่ระบุ"}
+          </span>
         </div>
-        <div class="candidate-list" id="job-${job.job_id}"></div>
+        <div class="candidate-list"></div>
       `;
 
-      const candidateList = section.querySelector(".candidate-list");
+      const list = section.querySelector(".candidate-list");
 
-      matchedSeekers.forEach(seeker => {
+      matched.forEach(seeker => {
+        const alreadyInvited = applications.some(
+          a => a.job_id === job.job_id
+            && a.seeker_email === seeker.email
+            && a.type === "invite"
+        );
+
         const card = document.createElement("div");
         card.className = "candidate-card";
+
         card.innerHTML = `
           <h4>${seeker.name}</h4>
-          <p>📍 ${seeker.location || "ไม่ระบุ"}</p>
-          <p>💰 ต้องการ ${seeker.expected_wage || "-"} บาท/ชม.</p>
-          <p>🎯 คะแนนความเหมาะสม: <b>${seeker.score}%</b></p>
-          <button class="btn-invite">📩 เชิญสมัคร</button>
+          <p>📍 ${seeker.location || "-"}</p>
+          <p>💰 ต้องการ: ${seeker.expected_wage || "-"} บาท/ชม.</p>
+          <p>🎯 ความเหมาะสม: <b>${seeker.score}%</b></p>
+          <p>📅 ว่างเริ่มงาน: ${seeker.available_date || "-"}</p>
+          <button class="btn-invite" ${alreadyInvited ? "disabled" : ""}>
+            ${alreadyInvited ? "✔ เชิญแล้ว" : "📩 เชิญสมัคร"}
+          </button>
         `;
 
         card.querySelector(".btn-invite").addEventListener("click", () => {
-          inviteSeeker(job, seeker);
+          if (!alreadyInvited) invite(job, seeker);
         });
 
-        candidateList.appendChild(card);
+        list.appendChild(card);
       });
 
       matchContainer.appendChild(section);
     });
 
-    if (totalMatches === 0) {
-      emptyMatch.style.display = "block";
-    } else {
-      emptyMatch.style.display = "none";
-    }
+    emptyMatch.style.display = found === 0 ? "block" : "none";
   }
 
   // ---------------------------------------------------
-  // 💌 ฟังก์ชันเชิญสมัครงาน
+  // 5) เชิญสมัครงาน
   // ---------------------------------------------------
-  function inviteSeeker(job, seeker) {
+  function invite(job, seeker) {
     Swal.fire({
-      title: `ต้องการเชิญ ${seeker.name}?`,
-      text: `ให้มาสมัครงาน "${job.title}" หรือไม่`,
+      title: `เชิญ ${seeker.name}?`,
+      text: `ให้สมัครงาน "${job.title}"`,
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "เชิญเลย",
       cancelButtonText: "ยกเลิก"
-    }).then(result => {
-      if (!result.isConfirmed) return;
+    }).then(res => {
+      if (!res.isConfirmed) return;
 
-      const apps = JSON.parse(localStorage.getItem(APPS_KEY) || "[]");
+      const apps = load(APPS_KEY);
 
-      // ตรวจสอบว่ามีการเชิญแล้วหรือยัง
-      const exist = apps.find(
-        a =>
-          a.job_id === job.job_id &&
-          a.seeker_email === seeker.email &&
-          a.type === "invite"
-      );
-      if (exist) {
-        Swal.fire({
-          icon: "info",
-          title: "เชิญผู้สมัครคนนี้ไปแล้ว",
-          timer: 1500,
-          showConfirmButton: false
-        });
-        return;
-      }
-
-      const invite = {
+      apps.push({
         app_id: Date.now().toString(),
         job_id: job.job_id,
         seeker_email: seeker.email,
         shop_email: job.shop_email,
-        status: "invited",
         type: "invite",
+        status: "invited",
         created_at: new Date().toISOString()
-      };
-      apps.push(invite);
+      });
+
       localStorage.setItem(APPS_KEY, JSON.stringify(apps));
 
       Swal.fire({
         icon: "success",
-        title: "✅ เชิญผู้สมัครเรียบร้อยแล้ว",
-        timer: 1500,
+        title: "เชิญผู้สมัครแล้ว",
+        timer: 1200,
         showConfirmButton: false
       });
+
+      renderMatching();
     });
   }
 
   // ---------------------------------------------------
-  // 🚪 ออกจากระบบ
+  // 6) ออกจากระบบ
   // ---------------------------------------------------
   logoutBtn.addEventListener("click", () => {
     Swal.fire({
       title: "ออกจากระบบ?",
-      text: "คุณแน่ใจหรือไม่ว่าต้องการออกจากระบบ",
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "ออกจากระบบ",
       cancelButtonText: "ยกเลิก"
-    }).then(result => {
-      if (result.isConfirmed) {
+    }).then(r => {
+      if (r.isConfirmed) {
         localStorage.removeItem(SESSION_KEY);
-        Swal.fire({
-          icon: "success",
-          title: "ออกจากระบบสำเร็จ 👋",
-          timer: 1000,
-          showConfirmButton: false
-        }).then(() => (window.location.href = "../auth.html"));
+        window.location.href = "../auth.html";
       }
     });
   });
 
   // ---------------------------------------------------
-  // เริ่มการแสดงผล
+  // เริ่มทำงาน
   // ---------------------------------------------------
   renderMatching();
 });
