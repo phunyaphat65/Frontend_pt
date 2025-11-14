@@ -2,14 +2,15 @@
 <html lang="th">
 <head>
   <meta charset="utf-8">
-  <title>AI Matching | Part-time Match</title>
+  <title>🔍 AI Matching | Part-time Match</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
 
   <style>
     body {
-      margin:0; padding:0; background:#eef1f9;
+      margin:0;
+      padding:0;
+      background:#eef1f9;
       font-family:"Prompt", sans-serif;
       display:flex;
       height:100vh;
@@ -18,20 +19,27 @@
 
     /* ---------------- Sidebar ---------------- */
     .sidebar {
-      width:240px; background:#ffffff;
+      width:240px;
+      background:#ffffff;
       border-right:1px solid #dfe3ef;
       padding:20px 0;
-      display:flex; flex-direction:column;
+      display:flex;
+      flex-direction:column;
     }
 
     .logo {
-      font-size:20px; font-weight:600; text-align:center;
-      color:#444; margin-bottom:24px;
+      font-size:20px;
+      font-weight:600;
+      text-align:center;
+      color:#444;
+      margin-bottom:24px;
     }
 
     .menu {
-      display:flex; flex-direction:column;
-      gap:6px; padding:0 16px;
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      padding:0 16px;
     }
 
     .menu a {
@@ -49,7 +57,9 @@
       font-weight:600;
     }
 
-    .menu a:hover { background:#f4f5ff; }
+    .menu a:hover {
+      background:#f4f5ff;
+    }
 
     .logout-area {
       margin-top:auto;
@@ -57,134 +67,86 @@
     }
 
     .btn-logout {
-      width:100%; border:none; padding:10px;
-      background:#d9534f; color:#fff; border-radius:8px;
-      cursor:pointer; font-size:14px;
+      width:100%;
+      border:none;
+      padding:10px;
+      background:#d9534f;
+      color:#fff;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:14px;
     }
 
     /* -------------- Main Content -------------- */
     .main {
-      flex:1; overflow-y:auto;
+      flex:1;
+      overflow-y:auto;
       padding:30px 40px;
     }
 
     .page-title {
-      font-size:26px; color:#222; margin:0;
+      font-size:26px;
+      color:#222;
+      margin:0;
       font-weight:600;
     }
-    .subtitle {
-      color:#666; margin-top:4px; font-size:14px;
-    }
 
-    /* -------------- Match Cards -------------- */
-    .match-list {
+    .job-list {
       margin-top:28px;
-      display:flex;
-      flex-direction:column;
-      gap:16px;
+      display:grid;
+      grid-template-columns:repeat(auto-fill, minmax(300px, 1fr));
+      gap:18px;
     }
 
-    .match-card {
+    .job-card {
       background:#fff;
+      padding:18px;
       border-radius:14px;
       box-shadow:0 4px 14px rgba(0,0,0,0.08);
-      padding:18px;
-      display:flex;
-      align-items:center;
-      gap:18px;
-      transition:0.15s;
+      transition:0.2s;
     }
-    .match-card:hover { transform:translateX(6px); }
 
-    .thumb {
-      width:86px; height:86px;
-      background:#e8ebff;
-      border-radius:12px;
+    .job-card:hover {
+      transform:translateY(-3px);
+      box-shadow:0 6px 18px rgba(0,0,0,0.12);
+    }
+
+    .job-img {
+      width:100%;
+      height:160px;
       object-fit:cover;
+      border-radius:10px;
+      margin-bottom:10px;
+      background:#eee;
     }
 
-    .info {
-      flex:1;
-    }
-
-    .job-title {
-      font-size:18px; font-weight:600; margin:0 0 4px;
-    }
-    .job-shop { color:#666; font-size:14px; }
-
-    .match-score {
-      background:#4c55d9;
-      padding:4px 10px;
-      color:#fff; font-size:13px;
-      border-radius:20px;
-      display:inline-block;
+    .btn-apply, .btn-detail {
+      width:100%;
+      padding:10px;
       margin-top:8px;
-    }
-
-    .actions {
-      display:flex; flex-direction:column; gap:8px; 
-    }
-
-    .btn-view {
-      background:#fff;
-      border:1px solid #cfd3ef;
-      color:#4c55d9;
-      padding:7px 12px;
+      border:none;
       border-radius:8px;
       cursor:pointer;
+      font-size:14px;
     }
+
+    .btn-detail {
+      background:#6c63ff;
+      color:#fff;
+    }
+
     .btn-apply {
-      background:linear-gradient(90deg,#667eea,#764ba2);
-      border:none; color:#fff;
-      padding:7px 14px; border-radius:24px;
-      cursor:pointer;
+      background:#4caf50;
+      color:#fff;
     }
 
-    /* -------------- Modal (slide-up) -------------- */
-    .modal {
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,0.45);
-      display:flex;
-      justify-content:center;
-      align-items:flex-end;
-      visibility:hidden;
-      opacity:0;
-      transition:0.25s;
-    }
-    .modal.active {
-      visibility:visible;
-      opacity:1;
-    }
-
-    .modal-box {
-      width:100%;
-      max-width:520px;
-      background:#fff;
-      border-radius:18px 18px 0 0;
-      padding:24px;
-      box-shadow:0 -4px 24px rgba(0,0,0,0.2);
-      transform:translateY(120px);
-      transition:0.25s;
-    }
-    .modal.active .modal-box {
-      transform:translateY(0);
-    }
-
-    .modal-close {
-      position:absolute;
-      top:12px; right:20px;
-      font-size:22px; cursor:pointer;
-      color:#777;
-    }
-
-    .modal-thumb {
-      width:100%; max-height:240px;
-      border-radius:14px; object-fit:cover;
-      margin-bottom:16px;
-      display:none;
+    .btn-apply[disabled] {
+      background:#aaa !important;
+      cursor:not-allowed;
     }
   </style>
+
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
@@ -195,7 +157,7 @@
 
     <div class="menu">
       <a href="profile.html">โปรไฟล์</a>
-      <a href="jobs.html">ค้นหางาน</a>
+      <a href="jobs.html">หางาน</a>
       <a href="applications.html">ใบสมัคร</a>
       <a href="matching.html" class="active">AI Matching</a>
       <a href="reviews.html">รีวิว</a>
@@ -208,38 +170,181 @@
 
   <!-- Main -->
   <div class="main">
-    <h2 class="page-title">🎯 งานที่เหมาะกับคุณ</h2>
-    <p class="subtitle">ระบบ AI วิเคราะห์โปรไฟล์คุณและจัดคะแนนความเหมาะสม</p>
+    <h2 class="page-title">AI Matching</h2>
+    <p>งานที่เหมาะกับคุณ (เรียงจากคะแนนสูงสุด → ต่ำสุด)</p>
 
-    <div id="matchList" class="match-list"></div>
-    <div id="emptyState" style="text-align:center; color:#777; margin-top:20px; display:none;">
-      ยังไม่มีงานที่เหมาะสมตอนนี้
-    </div>
+    <div id="matchList" class="job-list"></div>
+
+    <p id="noMatch" style="text-align:center;color:#888;margin-top:20px;display:none;">
+      ❗ ยังไม่มีงานที่เข้ากับคุณ
+    </p>
   </div>
 
-  <!-- Modal -->
-  <div id="jobModal" class="modal">
-    <div class="modal-box">
-      <span id="closeModal" class="modal-close">&times;</span>
+<script>
 
-      <img id="modalThumb" class="modal-thumb">
+/* -----------------------------
+   Login Check
+----------------------------- */
+const seekerEmail = localStorage.getItem("pt_seeker_session");
+if (!seekerEmail) {
+  Swal.fire("กรุณาเข้าสู่ระบบก่อน").then(() => location.href="../auth.html");
+}
 
-      <h3 id="modalTitle" style="margin:0;"></h3>
-      <p><strong>ร้าน:</strong> <span id="modalShop"></span></p>
-      <p><strong>ค่าจ้าง:</strong> <span id="modalWage"></span> บาท/ชม.</p>
-      <p><strong>สถานที่:</strong> <span id="modalLocation"></span></p>
+/* -----------------------------
+   Data Keys
+----------------------------- */
+const JOBS_KEY = "pt_jobs";
+const APPS_KEY = "pt_applications";
 
-      <h4 style="margin-top:14px;">รายละเอียดงาน</h4>
-      <p id="modalDesc"></p>
+const loadJobs = () => JSON.parse(localStorage.getItem(JOBS_KEY) || "[]");
+const loadApps = () => JSON.parse(localStorage.getItem(APPS_KEY) || "[]");
 
-      <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:18px;">
-        <button id="modalCloseBtn" class="btn-view">ปิด</button>
-        <button id="modalApplyBtn" class="btn-apply">สมัครงานนี้</button>
-      </div>
-    </div>
-  </div>
+/* -----------------------------
+   Matching Score Logic
+----------------------------- */
+function matchScore(job) {
+  let score = 0;
 
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script src="./js/matching.js"></script>
+  const wage = Number(job.wage || 0);
+  const title = (job.title || "").toLowerCase();
+  const rating = Number(job.rating || 0);
+
+  if (wage >= 40) score += 10;
+  if (wage >= 50) score += 20;
+  if (wage >= 70) score += 20;
+
+  if (title.includes("พาร์ทไทม์")) score += 20;
+  if (title.includes("ด่วน")) score += 10;
+  if (title.includes("บริการ")) score += 10;
+
+  score += rating * 5;
+
+  return score;
+}
+
+/* -----------------------------
+   Apply Job (save to localStorage)
+----------------------------- */
+function applyJob(job) {
+  const apps = loadApps();
+
+  const already = apps.find(a => a.job_id === job.id && a.seeker === seekerEmail);
+  if (already) return;
+
+  apps.push({
+    id: Date.now(),
+    job_id: job.id,
+    job_title: job.title,
+    shop_name: job.shop_name,
+    wage: job.wage,
+    location: job.location,
+    seeker: seekerEmail,
+    applied_at: new Date().toISOString()
+  });
+
+  localStorage.setItem(APPS_KEY, JSON.stringify(apps));
+}
+
+/* -----------------------------
+   Render Matching Jobs
+----------------------------- */
+function renderMatching() {
+  const jobs = loadJobs();
+  const apps = loadApps();
+
+  const box = document.getElementById("matchList");
+  const noMatch = document.getElementById("noMatch");
+  box.innerHTML = "";
+
+  if (jobs.length === 0) {
+    noMatch.style.display = "block";
+    return;
+  }
+  noMatch.style.display = "none";
+
+  const sorted = jobs
+    .map(j => ({ ...j, score: matchScore(j) }))
+    .sort((a, b) => b.score - a.score);
+
+  sorted.forEach(job => {
+    const applied = apps.find(a => a.job_id === job.id && a.seeker === seekerEmail);
+
+    const card = document.createElement("div");
+    card.className = "job-card";
+
+    card.innerHTML = `
+      ${job.image ? `<img src="${job.image}" class="job-img">` : ""}
+
+      <h3>${job.title}</h3>
+      <p>🏪 ${job.shop_name}</p>
+      <p>📍 ${job.location}</p>
+      <p>💰 ${job.wage} บาท/ชม.</p>
+      <p>⭐ ความเหมาะสม: <b>${job.score}</b></p>
+
+      <button class="btn-detail">ดูรายละเอียด</button>
+
+      <button class="btn-apply" ${applied ? "disabled" : ""}>
+        ${applied ? "✔ สมัครแล้ว" : "สมัครงาน"}
+      </button>
+    `;
+
+    /* --- ดูรายละเอียด --- */
+    card.querySelector(".btn-detail").onclick = () => {
+      Swal.fire({
+        title: job.title,
+        html: `
+          <p><b>ร้าน:</b> ${job.shop_name}</p>
+          <p><b>สถานที่:</b> ${job.location}</p>
+          <p><b>ค่าจ้าง:</b> ${job.wage} บาท/ชม.</p>
+          <p><b>รายละเอียด:</b><br>${job.description || "ไม่มีข้อมูล"}</p>
+        `,
+        confirmButtonText: "ปิด"
+      });
+    };
+
+    /* --- สมัครงาน --- */
+    card.querySelector(".btn-apply").onclick = () => {
+      if (applied) return;
+
+      Swal.fire({
+        title: "ต้องการสมัครงานนี้?",
+        text: job.title,
+        showCancelButton: true,
+        confirmButtonText: "สมัครงาน",
+        cancelButtonText: "ยกเลิก"
+      }).then(res => {
+        if (res.isConfirmed) {
+          applyJob(job);
+          Swal.fire("สมัครสำเร็จ!", "", "success");
+          renderMatching();
+        }
+      });
+    };
+
+    box.appendChild(card);
+  });
+}
+
+/* -----------------------------
+   Logout
+----------------------------- */
+document.getElementById("logoutBtn").onclick = () => {
+  Swal.fire({
+    title:"ออกจากระบบ?",
+    showCancelButton:true,
+    confirmButtonText:"ออก",
+    cancelButtonText:"ยกเลิก"
+  }).then(res => {
+    if (res.isConfirmed) {
+      localStorage.removeItem("pt_seeker_session");
+      location.href="../auth.html";
+    }
+  });
+};
+
+renderMatching();
+
+</script>
+
 </body>
 </html>

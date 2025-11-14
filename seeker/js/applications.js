@@ -1,8 +1,13 @@
+// ----------------------------------------------------------  
+// seeker/js/applications.js (FINAL MATCHED VERSION)
+// ----------------------------------------------------------
+
 (() => {
 
   const SESSION_SEEKER = "pt_seeker_session";
   const APPS_KEY = "pt_applications";
-  const JOBS_KEY = "jobs";   // <<< ปรับให้ตรงกับ seeker/jobs.js
+  const JOBS_KEY = "jobs";
+
   const applicationsList = document.getElementById("applicationsList");
 
   // -----------------------------
@@ -21,17 +26,32 @@
   // -----------------------------
   // Load data
   // -----------------------------
-  function loadApplications() {
+  const loadApplications = () => {
     const all = JSON.parse(localStorage.getItem(APPS_KEY) || "[]");
     return all.filter(a => a.applicant === seekerEmail);
-  }
+  };
 
-  function loadJobs() {
-    return JSON.parse(localStorage.getItem(JOBS_KEY) || "[]");
+  const loadJobs = () =>
+    JSON.parse(localStorage.getItem(JOBS_KEY) || "[]");
+
+  // -----------------------------
+  // Status text + color badge
+  // -----------------------------
+  function renderStatus(status) {
+    const map = {
+      pending: { text: "⏳ รอดำเนินการ", color: "#d4a017" },
+      reviewing: { text: "🔎 ร้านกำลังตรวจสอบ", color: "#3498db" },
+      interview: { text: "📞 นัดสัมภาษณ์", color: "#9b59b6" },
+      approved: { text: "✅ ผ่านการคัดเลือก", color: "#2ecc71" },
+      hired: { text: "🎉 ได้งานแล้ว", color: "#27ae60" },
+      rejected: { text: "❌ ไม่ผ่าน", color: "#e74c3c" },
+      cancelled: { text: "⚪ ยกเลิกแล้ว", color: "#95a5a6" },
+    };
+    return map[status] || { text: status, color: "#999" };
   }
 
   // -----------------------------
-  // Render applications
+  // Render Applications
   // -----------------------------
   function renderApplications() {
     const apps = loadApplications();
@@ -44,7 +64,8 @@
       return;
     }
 
-    apps.sort((a, b) => new Date(b.date) - new Date(a.date));
+    // sort ใหม่ล่าสุดก่อน
+    apps.sort((a, b) => new Date(b.applied_at) - new Date(a.applied_at));
 
     apps.forEach(app => {
       const job = jobs.find(j => j.id === app.job_id);
@@ -52,27 +73,35 @@
       const card = document.createElement("div");
       card.className = "app-card";
 
+      const statusInfo = renderStatus(app.status);
+
       const title = app.job_title || (job ? job.title : "(งานถูกลบแล้ว)");
-      const shopName = job ? job.shop_name : "(ไม่มีข้อมูล)";
-      const location = job ? job.location : "-";
+      const shopName = app.shop_name || (job ? job.shop_name : "(ไม่มีข้อมูล)");
+      const location = app.location || (job ? job.location : "-");
 
       card.innerHTML = `
         <div class="app-header">
           <h3>${title}</h3>
-          <span class="badge status-${app.status}">${statusText(app.status)}</span>
+          <span class="badge" style="background:${statusInfo.color}">
+            ${statusInfo.text}
+          </span>
         </div>
 
         <div class="app-info">
           <p><strong>ร้าน:</strong> ${shopName}</p>
           <p><strong>สถานที่:</strong> ${location}</p>
-          <p><strong>วันที่สมัคร:</strong> ${new Date(app.date).toLocaleDateString("th-TH")}</p>
-          <p><strong>รายละเอียดที่ส่ง:</strong> ${app.note || "-"}</p>
+          <p><strong>ค่าแรง:</strong> ${app.wage || "-"} บาท/ชม.</p>
+          <p><strong>วันที่สมัคร:</strong> 
+            ${new Date(app.applied_at).toLocaleString("th-TH")}
+          </p>
+          <p><strong>หมายเหตุ:</strong> ${app.note || "-"}</p>
 
           ${!job ? `<p class="warn">⚠️ งานนี้อาจถูกลบแล้ว</p>` : ""}
         </div>
       `;
 
-      if (["pending", "reviewing"].includes(app.status)) {
+      // ปุ่มยกเลิก เฉพาะ pending
+      if (app.status === "pending") {
         const btn = document.createElement("button");
         btn.className = "btn-cancel";
         btn.innerHTML = `<i class="fa-solid fa-ban"></i> ยกเลิกใบสมัคร`;
@@ -82,18 +111,6 @@
 
       applicationsList.appendChild(card);
     });
-  }
-
-  function statusText(status) {
-    return {
-      pending: "⏳ รอดำเนินการ",
-      reviewing: "🔎 ร้านกำลังตรวจสอบ",
-      interview: "📞 นัดสัมภาษณ์",
-      approved: "✅ ผ่านการคัดเลือก",
-      hired: "🎉 ได้งานแล้ว",
-      rejected: "❌ ไม่ผ่าน",
-      cancelled: "⚪ ยกเลิกแล้ว",
-    }[status] || status;
   }
 
   // -----------------------------
@@ -119,12 +136,12 @@
 
       localStorage.setItem(APPS_KEY, JSON.stringify(apps));
 
-      renderApplications();
-
       Swal.fire({
         icon: "success",
         title: "ยกเลิกใบสมัครแล้ว",
       });
+
+      renderApplications();
     });
   }
 

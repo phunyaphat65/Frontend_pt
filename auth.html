@@ -213,9 +213,6 @@
 
   <script>
     (() => {
-      // ==========================
-      // Utility + Local Storage
-      // ==========================
       const USERS_KEY = "pt_users";
       const SESSION_SEEKER = "pt_seeker_session";
       const SESSION_SHOP = "pt_shop_session";
@@ -228,18 +225,12 @@
         $(id).classList.add("active");
       };
 
-      // ==========================
-      // Redirect if already logged in
-      // ==========================
       if (localStorage.getItem(SESSION_SHOP)) {
         window.location.href = "./shop/applications.html";
       } else if (localStorage.getItem(SESSION_SEEKER)) {
         window.location.href = "./seeker/matching.html";
       }
 
-      // ==========================
-      // LOGIN
-      // ==========================
       $("formLogin").addEventListener("submit", e => {
         e.preventDefault();
         const email = $("loginEmail").value.trim().toLowerCase();
@@ -265,9 +256,6 @@
         });
       });
 
-      // ==========================
-      // REGISTER
-      // ==========================
       $("formRegister").addEventListener("submit", e => {
         e.preventDefault();
         const name = $("regName").value.trim();
@@ -299,9 +287,6 @@
         Swal.fire("✅", "สมัครสมาชิกสำเร็จ กรุณาเข้าสู่ระบบ", "success").then(() => switchView("view-login"));
       });
 
-      // ==========================
-      // FORGOT PASSWORD + OTP
-      // ==========================
       let otp = null, otpEmail = null, exp = 0;
 
       $("btnSendOtp").onclick = () => {
@@ -341,9 +326,6 @@
         Swal.fire("📩 ส่ง OTP ใหม่", `<b>${otp}</b><br><small>มีอายุ 5 นาที</small>`, "info");
       };
 
-      // ==========================
-      // TOGGLE PASSWORD VISIBILITY
-      // ==========================
       const togglePw = (input, btn) => {
         const isHidden = input.type === "password";
         input.type = isHidden ? "text" : "password";
@@ -353,9 +335,6 @@
       $("toggleRegPw").onclick = () => togglePw($("regPassword"), $("toggleRegPw"));
       $("toggleNewPw").onclick = () => togglePw($("newPassword"), $("toggleNewPw"));
 
-      // ==========================
-      // NAVIGATION
-      // ==========================
       $("toRegister").onclick = () => switchView("view-register");
       $("toForgot").onclick = () => {
         $("step-email").style.display = "block";

@@ -5,204 +5,375 @@
   <title>🤝 การจับคู่แรงงาน | Part-time Match</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <!-- Styles -->
   <link rel="stylesheet" href="../common/css/style.css">
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
 
   <style>
-    body {
-      font-family: "Prompt", sans-serif;
-      background: #f7f9fc;
-      color: #333;
-      margin: 0;
-      min-height: 100vh;
-    }
-
-    /* === Navbar === */
-    .navbar {
-      background: linear-gradient(90deg, #667eea, #764ba2);
-      color: #fff;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 24px;
-    }
-
-    .navbar h1 {
-      font-size: 20px;
-      font-weight: 600;
-      margin: 0;
-    }
-
-    .nav-right a {
-      color: #fff;
-      text-decoration: none;
-      margin: 0 10px;
-      font-weight: 500;
-      transition: opacity 0.25s;
-    }
-
-    .nav-right a:hover,
-    .nav-right a.active {
-      opacity: 0.8;
-    }
-
-    .btn-logout {
-      background: rgba(255,255,255,0.25);
-      border: none;
-      color: #fff;
-      padding: 8px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-
-    .btn-logout:hover {
-      background: rgba(255,255,255,0.35);
-    }
-
-    /* === Container === */
-    .container {
-      max-width: 1000px;
-      margin: 40px auto;
-      background: #fff;
-      border-radius: 16px;
-      padding: 35px 45px;
-      box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-      animation: fadeIn 0.35s ease-in-out;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    h2 {
-      margin-bottom: 8px;
-      font-weight: 600;
-    }
-
-    p {
-      margin-bottom: 22px;
-      color: #555;
-    }
-
-    /* === Matching Section === */
-    .match-container {
-      display: flex;
-      flex-direction: column;
-      gap: 25px;
-    }
-
-    .job-section {
-      background: #fafbff;
-      padding: 25px;
-      border-radius: 14px;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.06);
-      transition: 0.25s;
-    }
-
-    .job-section:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.10);
-    }
-
-    .job-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #eee;
-      padding-bottom: 10px;
-      margin-bottom: 14px;
-    }
-
-    .job-header h3 {
-      margin: 0;
-      font-size: 18px;
-      font-weight: 600;
-    }
-
-    .candidate-list {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 15px;
-    }
-
-    .candidate-card {
-      background: #fff;
-      border: 1px solid #e2e8f0;
-      padding: 16px;
-      border-radius: 12px;
-      transition: 0.2s;
-    }
-
-    .candidate-card:hover {
-      background: #f8f9ff;
-      box-shadow: 0 6px 14px rgba(0,0,0,0.06);
-    }
-
-    .candidate-card h4 {
-      margin: 0 0 6px;
-      font-size: 16px;
-      font-weight: 600;
-    }
-
-    .candidate-card p {
-      font-size: 14px;
-      margin-bottom: 5px;
-    }
-
-    .btn-invite {
-      margin-top: 8px;
-      background: linear-gradient(90deg, #667eea, #764ba2);
-      color: #fff;
-      padding: 7px 14px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 13px;
-      border: none;
-      transition: 0.25s;
-    }
-
-    .btn-invite:hover {
-      opacity: 0.9;
-      transform: translateY(-1px);
-    }
-
-    .empty-text {
-      margin-top: 35px;
-      text-align: center;
-      color: #888;
-      font-style: italic;
-    }
+    body { font-family: "Prompt", sans-serif; background:#f7f9fc; color:#333; margin:0; min-height:100vh; }
+    .navbar { background: linear-gradient(90deg,#667eea,#764ba2); color:#fff; display:flex; justify-content:space-between; align-items:center; padding:12px 24px; }
+    .navbar h1 { margin:0; font-weight:600; font-size:20px; }
+    .nav-right a { color:#fff; text-decoration:none; margin:0 10px; font-weight:500; }
+    .container { max-width:1000px; margin:40px auto; background:#fff; border-radius:16px; padding:32px; box-shadow:0 6px 20px rgba(0,0,0,0.08); }
+    .job-section { background:#fafbff; padding:20px; border-radius:12px; margin-bottom:18px; border:1px solid #eef1ff; }
+    .job-header { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:12px; }
+    .candidate-list { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:12px; }
+    .candidate-card { background:#fff; border:1px solid #e2e8f0; padding:12px; border-radius:10px; }
+    .candidate-card h4 { margin:0 0 6px 0; }
+    .btn-invite { margin-top:8px; background:linear-gradient(90deg,#667eea,#764ba2); color:#fff; padding:8px 12px; border-radius:8px; border:none; cursor:pointer; }
+    .btn-invite:disabled { background:#cfcfcf; cursor:default; }
+    .empty-text { text-align:center; color:#777; font-style:italic; margin-top:24px; }
+    small.gray { color:#666; }
   </style>
 </head>
-
 <body>
 
-  <!-- Navbar -->
   <nav class="navbar">
-    <div class="nav-left"><h1>Part-time Match (ร้านค้า)</h1></div>
+    <div><h1>Part-time Match (ร้านค้า)</h1></div>
     <div class="nav-right">
       <a href="matching.html" class="active">การจับคู่</a>
       <a href="profile.html">โปรไฟล์</a>
       <a href="jobs.html">งานของฉัน</a>
       <a href="applications.html">ใบสมัคร</a>
       <a href="reviews.html">รีวิวร้าน</a>
-      <button id="logoutBtn" class="btn-logout">ออกจากระบบ</button>
+      <button id="logoutBtn" style="margin-left:12px;padding:6px 10px;border-radius:8px;border:none;background:rgba(255,255,255,0.12);color:#fff;cursor:pointer;">ออกจากระบบ</button>
     </div>
   </nav>
 
-  <!-- Main Content -->
   <div class="container">
     <h2>🤝 การจับคู่แรงงานที่เหมาะสม</h2>
-    <p>ระบบจะแนะนำแรงงานที่ตรงกับคุณสมบัติงานของคุณ เช่น ทักษะ ระยะทาง และช่วงเวลาที่พร้อมทำงาน</p>
+    <p class="gray">ระบบจะแสดงผู้หางานที่ตรงตามเงื่อนไขของงานของคุณ (เรียงจากระยะทางใกล้ → คะแนนสูง → ชื่อ)</p>
 
-    <div id="matchContainer" class="match-container"></div>
-    <p id="emptyMatch" class="empty-text" style="display:none;">ยังไม่มีข้อมูลการจับคู่</p>
+    <div id="matchContainer"></div>
+    <p id="emptyMatch" class="empty-text" style="display:none;">— ยังไม่มีผู้สมัครที่ตรงเงื่อนไข —</p>
   </div>
 
-  <!-- JS -->
-  <script src="./js/matching.js"></script>
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script>
+  (function(){
+    // -------------------------
+    // Keys
+    // -------------------------
+    const SESSION_KEY = "pt_shop_session";
+    const USERS_KEY = "pt_users";
+    const JOBS_KEY = "pt_jobs";
+    const APPS_KEY = "pt_applications";
+    const PROFILE_KEY = "pt_profile_data"; // optional
+
+    const matchContainer = document.getElementById("matchContainer");
+    const emptyMatch = document.getElementById("emptyMatch");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    const load = k => {
+      try { return JSON.parse(localStorage.getItem(k) || "[]"); } catch(e){ return []; }
+    };
+    const loadObj = k => {
+      try { return JSON.parse(localStorage.getItem(k) || "{}"); } catch(e){ return {}; }
+    };
+
+    function redirectLogin(msg){
+      Swal.fire({ icon:"warning", title: msg }).then(()=> location.href = "../login.html");
+    }
+
+    // Haversine distance
+    function distanceKm(a,b){
+      if(!a||!b) return 9999;
+      const la = Number(a.lat), ln = Number(a.lng), lb = Number(b.lat), lnb = Number(b.lng);
+      if (!isFinite(la) || !isFinite(ln) || !isFinite(lb) || !isFinite(lnb)) return 9999;
+      const R = 6371;
+      const dLat = (lb - la) * Math.PI/180;
+      const dLng = (lnb - ln) * Math.PI/180;
+      const lat1 = la * Math.PI/180;
+      const lat2 = lb * Math.PI/180;
+      const h = Math.sin(dLat/2)**2 + Math.sin(dLng/2)**2 * Math.cos(lat1) * Math.cos(lat2);
+      return 2 * R * Math.asin(Math.sqrt(h));
+    }
+
+    // Normalize user to consistent fields
+    function normalizeUser(u){
+      if(!u) return null;
+      const email = u.email || u.mail || "";
+      const name = u.name || u.fullname || u.displayName || "";
+      const skills = Array.isArray(u.skills) ? u.skills : (typeof u.skills === "string" ? u.skills : "");
+      const lat = (u.lat !== undefined) ? Number(u.lat) : (u.latitude !== undefined ? Number(u.latitude) : (u.pin && u.pin.lat ? Number(u.pin.lat) : undefined));
+      const lng = (u.lng !== undefined) ? Number(u.lng) : (u.longitude !== undefined ? Number(u.longitude) : (u.pin && u.pin.lng ? Number(u.pin.lng) : undefined));
+      return {
+        ...u,
+        email,
+        name,
+        skills,
+        lat: isFinite(lat) ? lat : undefined,
+        lng: isFinite(lng) ? lng : undefined
+      };
+    }
+
+    // session check
+    const sessionVal = localStorage.getItem(SESSION_KEY);
+    if(!sessionVal){
+      redirectLogin("กรุณาเข้าสู่ระบบก่อน");
+      return;
+    }
+
+    // load users & shop
+    let users = load(USERS_KEY);
+    if(!Array.isArray(users)) users = [];
+    const shop = users.find(u => (u.email||"").toLowerCase() === (sessionVal||"").toLowerCase());
+    if(!shop){
+      // maybe sessionVal is id; try match by id
+      const byId = users.find(u => (u.id && u.id.toString()===sessionVal.toString()) || (u.user_id && u.user_id.toString()===sessionVal.toString()));
+      if(byId && byId.role === "shop") {
+        // okay
+      } else {
+        localStorage.setItem(SESSION_KEY,"");
+        redirectLogin("บัญชีไม่ใช่ร้านค้า หรือ session หมดอายุ");
+        return;
+      }
+    }
+
+    // load jobs for this shop
+    let jobs = load(JOBS_KEY);
+    if(!Array.isArray(jobs)) jobs = [];
+    // normalize jobs: allow job.id or job.job_id and location_pin or lat/lng
+    const shopEmail = (shop && (shop.email||"")) || sessionVal;
+    jobs = jobs.filter(j => (j.shop_email||j.shop||"").toLowerCase() === (shopEmail||"").toLowerCase());
+
+    if(jobs.length === 0){
+      emptyMatch.style.display = "block";
+      emptyMatch.textContent = "คุณยังไม่มีงานในระบบ";
+      return;
+    }
+
+    // load pt_profile_data (could be map or single obj)
+    const profileStore = loadObj(PROFILE_KEY);
+
+    // prepare seekers list: take pt_users where role=seeker, merge with profileStore if available
+    let seekers = users.filter(u => (u.role === "seeker"));
+    seekers = seekers.map(u => {
+      const norm = normalizeUser(u) || {};
+      // attempt to get profile for this email
+      const prof = (profileStore && profileStore[norm.email]) ? profileStore[norm.email] : ( (profileStore && profileStore.email && (profileStore.email === norm.email || !profileStore.email)) ? profileStore : {} );
+      // prof may be single object; we merge fields if exist
+      const merged = {
+        ...norm,
+        fullname: prof.fullname || prof.name || norm.name || "",
+        phone: prof.phone || norm.phone || "",
+        skills: (prof.skills && prof.skills.length) ? (Array.isArray(prof.skills) ? prof.skills.join(", ") : prof.skills) : norm.skills,
+        expected_wage: prof.expected_wage || prof.want_wage || norm.expected_wage || null,
+        available_date: prof.available_date || prof.available || norm.available_date || "",
+        lat: (prof.lat !== undefined) ? Number(prof.lat) : norm.lat,
+        lng: (prof.lng !== undefined) ? Number(prof.lng) : norm.lng,
+        profile_image: prof.avatar || prof.profile_image || norm.profile_image || ""
+      };
+      // ensure email exists
+      merged.email = merged.email || norm.email || "";
+      return merged;
+    });
+
+    // match score calculation (kept simple & robust)
+    function calcMatchScore(job, seeker){
+      let score = 0;
+      // wage preference
+      const seekerW = Number(seeker.expected_wage || seeker.want_wage || seeker.expected || 0);
+      if (seekerW > 0 && job.wage) {
+        if (job.wage >= seekerW) score += 30;
+        else score += Math.max(0, 15 - (seekerW - job.wage) * 0.5);
+      }
+      // distance (20)
+      const jobPin = job.location_pin || job.locationPin || (job.lat && job.lng ? { lat: Number(job.lat), lng: Number(job.lng) } : null);
+      const seekerPin = (seeker.lat !== undefined && seeker.lng !== undefined) ? { lat: Number(seeker.lat), lng: Number(seeker.lng) } : null;
+      const dist = distanceKm(jobPin, seekerPin);
+      if (dist !== 9999) {
+        if (dist <= 2) score += 20;
+        else if (dist <= 5) score += 15;
+        else if (dist <= 10) score += 5;
+      }
+      // skills (30)
+      const jobDesc = (job.description || job.title || "").toString().toLowerCase();
+      let skillCount = 0;
+      if(seeker.skills){
+        const list = (Array.isArray(seeker.skills) ? seeker.skills : seeker.skills.toString().split(/,|\s+/)).map(s=>s.trim()).filter(Boolean);
+        list.forEach(s=>{
+          if(jobDesc.includes(s.toLowerCase())) skillCount++;
+        });
+      }
+      score += Math.min(30, skillCount * 10);
+      // start date (20)
+      if (job.start_date && seeker.available_date) {
+        const js = new Date(job.start_date);
+        const ss = new Date(seeker.available_date);
+        if (!isNaN(js) && !isNaN(ss)) {
+          if (ss <= js) score += 20;
+          else score += Math.max(0, 20 - (ss - js)/(1000*3600*24));
+        }
+      }
+      return Math.min(100, Math.round(score));
+    }
+
+    function renderMatching(){
+      matchContainer.innerHTML = "";
+      let found = 0;
+
+      jobs.forEach(job => {
+        // prepare job pin
+        const jobPin = job.location_pin || job.locationPin || (job.lat && job.lng ? { lat: Number(job.lat), lng: Number(job.lng) } : null);
+
+        // build matched list
+        const matched = seekers.map(s => {
+          const seekerPin = (s.lat !== undefined && s.lng !== undefined) ? { lat: Number(s.lat), lng: Number(s.lng) } : null;
+          const distance = distanceKm(jobPin, seekerPin);
+          const score = calcMatchScore(job, s);
+          return { ...s, distance, score };
+        })
+        // only consider seekers with some minimal score or available
+        .filter(s => s.score >= 30 || s.distance < 9999)
+        // sort by distance asc then score desc then name
+        .sort((a,b) => {
+          if (a.distance !== b.distance) return a.distance - b.distance;
+          if (b.score !== a.score) return b.score - a.score;
+          return (a.fullname || a.name || "").localeCompare(b.fullname || b.name || "");
+        });
+
+        if (matched.length === 0) return;
+        found++;
+
+        const section = document.createElement("div");
+        section.className = "job-section";
+
+        section.innerHTML = `
+          <div class="job-header">
+            <div>
+              <strong style="font-size:16px">${job.title || "(ไม่ระบุหัวข้องาน)"}</strong>
+              <div style="font-size:13px;color:#555;">${job.location || job.address || "-"}</div>
+            </div>
+            <div style="text-align:right">
+              <div>💰 ${job.wage || "-"} บาท/ชม.</div>
+              <div style="font-size:12px;color:#666">เริ่ม: ${job.start_date || "ไม่ระบุ"}</div>
+            </div>
+          </div>
+          <div class="candidate-list"></div>
+        `;
+
+        const listEl = section.querySelector(".candidate-list");
+
+        matched.forEach(sk => {
+          const jobId = job.job_id || job.id || job.jobId || jobIDFrom(job);
+          // check invited: support stored records with job_id or jobId or id
+          const apps = load(APPS_KEY);
+          const invited = apps.some(a => {
+            const aJob = a.job_id || a.jobId || a.jobIdStr || a.job || a.jobID || a.job_id_str;
+            const aSeeker = a.seeker_email || a.email;
+            return (String(aJob) === String(jobId)) && (String(aSeeker) === String(sk.email)) && (a.type === "invite");
+          });
+
+          const card = document.createElement("div");
+          card.className = "candidate-card";
+
+          const displayName = sk.fullname || sk.name || "(ไม่ระบุชื่อ)";
+          const skillsText = (sk.skills && (Array.isArray(sk.skills) ? sk.skills.join(", ") : sk.skills)) || "-";
+          const distTxt = (sk.distance === 9999) ? "ไม่พบตำแหน่ง" : sk.distance.toFixed(2) + " กม.";
+          const want = sk.expected_wage || sk.want_wage || "-";
+          const avail = sk.available_date || "-";
+
+          card.innerHTML = `
+            <h4>${escapeHtml(displayName)}</h4>
+            <p><small class="gray">📍 ระยะทาง: ${distTxt}</small></p>
+            <p>💰 ต้องการ: ${escapeHtml(want + "")} บาท/ชม.</p>
+            <p>🎯 ความเหมาะสม: <b>${sk.score}%</b></p>
+            <p>🔧 ทักษะ: ${escapeHtml(skillsText)}</p>
+            <p>📅 เริ่มงานได้: ${escapeHtml(avail)}</p>
+            <button class="btn-invite" ${invited ? "disabled" : ""}>${invited ? "✔ เชิญแล้ว" : "📩 เชิญสมัคร"}</button>
+          `;
+
+          const btn = card.querySelector(".btn-invite");
+          btn.addEventListener("click", () => {
+            if (btn.disabled) return;
+            invite(job, sk, jobId);
+          });
+
+          listEl.appendChild(card);
+        });
+
+        matchContainer.appendChild(section);
+      });
+
+      emptyMatch.style.display = found === 0 ? "block" : "none";
+    }
+
+    // utility: find some job id variants
+    function jobIDFrom(job){
+      return job.job_id || job.id || job.jobId || job.job || null;
+    }
+
+    // invite function robust
+    function invite(job, seeker, jobId){
+      Swal.fire({
+        title: `เชิญ ${seeker.fullname || seeker.name || "ผู้สมัคร"}?`,
+        text: `เชิญให้สมัครงาน "${job.title || '(ไม่ระบุ)'}"`,
+        icon: "question",
+        showCancelButton: true,
+        confirmButtonText: "เชิญเลย",
+        cancelButtonText: "ยกเลิก"
+      }).then(res => {
+        if (!res.isConfirmed) return;
+
+        // load existing apps, ensure array
+        let apps = load(APPS_KEY);
+        if (!Array.isArray(apps)) apps = [];
+
+        const rec = {
+          app_id: Date.now().toString(),
+          job_id: jobId,
+          job_title: job.title || "",
+          seeker_email: seeker.email || seeker.mail || "",
+          seeker_name: seeker.fullname || seeker.name || "",
+          shop_email: job.shop_email || job.shop || shop.email,
+          type: "invite",
+          status: "invited",
+          created_at: new Date().toISOString()
+        };
+
+        apps.push(rec);
+        localStorage.setItem(APPS_KEY, JSON.stringify(apps));
+
+        Swal.fire({ icon: "success", title: "ส่งคำเชิญแล้ว", timer: 1000, showConfirmButton:false });
+        // re-render to disable button
+        renderMatching();
+      });
+    }
+
+    // escape for safety in HTML
+    function escapeHtml(str){
+      if (str === undefined || str === null) return "";
+      return String(str)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&quot;")
+        .replaceAll("'","&#039;");
+    }
+
+    // LOGOUT: clear session only
+    logoutBtn.addEventListener("click", () => {
+      Swal.fire({
+        title: "ออกจากระบบ?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "ยืนยัน",
+        cancelButtonText: "ยกเลิก"
+      }).then(r => {
+        if (r.isConfirmed) {
+          localStorage.setItem(SESSION_KEY, "");
+          location.href = "../login.html";
+        }
+      });
+    });
+
+    // initial render
+    renderMatching();
+
+  })();
+  </script>
 
 </body>
 </html>

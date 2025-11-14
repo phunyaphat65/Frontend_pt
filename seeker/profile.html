@@ -16,7 +16,6 @@
       overflow:hidden;
     }
 
-    /* ---------------- Sidebar ---------------- */
     .sidebar {
       width:240px; background:#ffffff;
       border-right:1px solid #dfe3ef;
@@ -62,7 +61,6 @@
       cursor:pointer; font-size:14px;
     }
 
-    /* -------------- Main -------------- */
     .main {
       flex:1; overflow-y:auto;
       padding:30px 40px;
@@ -76,7 +74,6 @@
       color:#666; margin-top:4px; font-size:14px;
     }
 
-    /* -------------- Profile Card -------------- */
     .profile-card {
       margin-top:24px;
       background:#fff;
@@ -166,7 +163,7 @@
 
     <div class="profile-card">
 
-      <!-- PROFILE PICTURE -->
+      <!-- Profile Picture -->
       <div class="profile-header">
         <img id="avatarPreview" class="avatar" src="./img/default-profile.png" alt="avatar">
         <div>
@@ -177,24 +174,12 @@
         </div>
       </div>
 
-      <!-- FORM FIELDS -->
-      <div class="form-group">
-        <label>ชื่อ – นามสกุล</label>
-        <input id="fullname" type="text">
-      </div>
+      <!-- FORM -->
+      <div class="form-group"><label>ชื่อ – นามสกุล</label><input id="fullname" type="text"></div>
+      <div class="form-group"><label>อีเมล</label><input id="email" type="email" readonly></div>
+      <div class="form-group"><label>เบอร์โทร</label><input id="phone" type="text"></div>
 
-      <div class="form-group">
-        <label>อีเมล</label>
-        <input id="email" type="email">
-      </div>
-
-      <div class="form-group">
-        <label>เบอร์โทร</label>
-        <input id="phone" type="text" placeholder="เช่น 0912345678">
-      </div>
-
-      <div class="form-group">
-        <label>เพศ</label>
+      <div class="form-group"><label>เพศ</label>
         <select id="gender">
           <option value="">เลือกเพศ</option>
           <option value="ชาย">ชาย</option>
@@ -203,30 +188,19 @@
         </select>
       </div>
 
-      <div class="form-group">
-        <label>วันเกิด</label>
-        <input id="birthday" type="date">
-      </div>
-
-      <div class="form-group">
-        <label>พื้นที่ที่อยู่</label>
-        <input id="address" type="text" placeholder="ระบุที่อยู่โดยย่อ เช่น บางเขน กรุงเทพฯ">
-      </div>
+      <div class="form-group"><label>วันเกิด</label><input id="birthday" type="date"></div>
+      <div class="form-group"><label>พื้นที่ที่อยู่</label><input id="address" type="text"></div>
 
       <div class="form-group">
         <label>ตำแหน่งบนแผนที่</label>
         <div id="map"></div>
       </div>
 
-      <div class="form-group">
-        <label>ทักษะ</label>
-        <textarea id="skills" rows="3"></textarea>
-      </div>
+      <div class="form-group"><label>ทักษะ (คั่นด้วย , )</label><textarea id="skills" rows="3"></textarea></div>
+      <div class="form-group"><label>ประสบการณ์</label><textarea id="experience" rows="3"></textarea></div>
 
-      <div class="form-group">
-        <label>ประสบการณ์</label>
-        <textarea id="experience" rows="3"></textarea>
-      </div>
+      <div class="form-group"><label>ค่าจ้างที่ต้องการ (บาท/ชม.)</label><input id="expected_wage" type="number" min="0"></div>
+      <div class="form-group"><label>ว่างเริ่มงาน (YYYY-MM-DD)</label><input id="available_date" type="date"></div>
 
       <button class="btn-save" id="saveProfileBtn">บันทึกข้อมูล</button>
     </div>
@@ -235,111 +209,431 @@
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
-  const SESSION_SEEKER = "pt_seeker_session";
+/* ---------------------------
+   Config keys
+---------------------------- */
+const SESSION = "pt_seeker_session";   // session key (เก็บ email หรือ id)
+const PROFILE_KEY = "pt_profile_data"; // อาจจะเป็น object หรือ map
+const USERS_KEY = "pt_users";          // ฐานผู้ใช้รวม
 
-  /* ----------------------------------------
-      🔐 ตรวจสอบการเข้าสู่ระบบ
-  ---------------------------------------- */
-  const seekerEmail = localStorage.getItem(SESSION_SEEKER);
+/* ---------------------------
+   Helpers
+---------------------------- */
+const $ = id => document.getElementById(id);
+const loadJSON = (k, def) => {
+  try { return JSON.parse(localStorage.getItem(k) || def); }
+  catch(e){ return def; }
+};
 
-  if (!seekerEmail) {
-    Swal.fire({
-      icon: "warning",
-      title: "กรุณาเข้าสู่ระบบก่อน",
-      text: "คุณต้องเข้าสู่ระบบเพื่อดูโปรไฟล์ของคุณ",
-      confirmButtonText: "เข้าสู่ระบบ",
-      allowOutsideClick: false,
-      allowEscapeKey: false
-    }).then(() => {
-      location.href = "../auth.html";
-    });
+/* ---------------------------
+   ตรวจ login
+---------------------------- */
+const sessionVal = localStorage.getItem(SESSION);
+if (!sessionVal) {
+  Swal.fire("กรุณาเข้าสู่ระบบก่อน","","warning").then(()=> location.href = "../login.html");
+}
+
+/* ---------------------------
+   ฟังก์ชันแปลง user object ให้เป็นมาตรฐาน
+   - รองรับหลายโครงสร้างจาก pt_users
+---------------------------- */
+function normalizeUser(u){
+  if (!u) return null;
+  // id
+  const id = u.id || u.user_id || u._id || null;
+  // email
+  const email = u.email || u.mail || "";
+  // name
+  const name = u.name || u.fullname || u.displayName || "";
+  // phone
+  const phone = u.phone || u.tel || u.mobile || "";
+  // avatar
+  const avatar = u.avatar || u.profile_image || u.profileImg || u.profile || "";
+  // skills: could be string or array
+  let skills = [];
+  if (Array.isArray(u.skills)) skills = u.skills;
+  else if (typeof u.skills === "string" && u.skills.trim() !== "") {
+    // try comma separated or space-separated
+    skills = u.skills.split(",").map(s=>s.trim()).filter(Boolean);
+  }
+  // pin: if lat/lng fields exist
+  let pin = null;
+  const lat = u.lat || u.latitude || u.location_lat || (u.pin && u.pin.lat);
+  const lng = u.lng || u.longitude || u.location_lng || (u.pin && u.pin.lng);
+  if (typeof lat === "number" && typeof lng === "number") {
+    pin = { lat, lng };
+  }
+  // expected wage & available_date (may be in profile)
+  const expected_wage = u.expected_wage || u.want_wage || u.wage || null;
+  const available_date = u.available_date || u.available || u.start_date || "";
+
+  return {
+    id, email, name, phone, avatar, skills, pin,
+    expected_wage, available_date,
+    raw: u
+  };
+}
+
+/* ---------------------------
+   โหลดข้อมูล profile จาก storage
+   - PROFILE_KEY อาจเป็น {} หรือ { email: profile }
+---------------------------- */
+function loadProfileForEmail(email){
+  const raw = loadJSON(PROFILE_KEY, "{}");
+
+  // หาก PROFILE_KEY เป็น object mapping { email: profileObj }
+  if (raw && typeof raw === "object" && raw[email]) {
+    return raw[email];
   }
 
-  /* ----------------------------------------
-      GOOGLE MAP
-  ---------------------------------------- */
-  let map, marker;
-
-  function initMap() {
-    const defaultPos = { lat: 13.7563, lng: 100.5018 };
-
-    map = new google.maps.Map(document.getElementById("map"), {
-      center: defaultPos,
-      zoom: 13,
-    });
-
-    marker = new google.maps.Marker({
-      position: defaultPos,
-      map: map,
-      draggable: true
-    });
+  // หาก PROFILE_KEY เป็นวัตถุเดี่ยวของผู้ใช้ปัจจุบัน (เดิม)
+  if (raw && typeof raw === "object" && (raw.email === email || !raw.email)) {
+    return raw;
   }
 
-  /* ----------------------------------------
-      อัปโหลดรูปโปรไฟล์
-  ---------------------------------------- */
-  document.getElementById("avatarInput").addEventListener("change", function(){
-    const file = this.files[0];
-    if (!file) return;
-    document.getElementById("avatarPreview").src = URL.createObjectURL(file);
+  // ไม่มี
+  return {};
+}
+
+/* ---------------------------
+   บันทึก profile กลับทั้ง 2 ที่:
+   - PROFILE_KEY: เก็บแบบเดิม (object หรือ map)
+   - pt_users: อัปเดต user entry (เพิ่ม/แก้)
+---------------------------- */
+function saveProfileAndUsers(email, profileObj){
+  // 1) PROFILE_KEY: ต้องรักษารูปแบบเดิมไว้ ถ้าเป็น map ให้เก็บ map[email]=profileObj
+  let rawProfile = null;
+  try {
+    rawProfile = JSON.parse(localStorage.getItem(PROFILE_KEY) || "null");
+  } catch(e){ rawProfile = null; }
+
+  if (rawProfile && typeof rawProfile === "object" && !Array.isArray(rawProfile) && Object.keys(rawProfile).length > 0 && rawProfile[email] === undefined) {
+    // ประเด็น: ถ้า rawProfile มี keys หลายๆ ตัว และไม่ใช่ profile ของคนนี้ แบบ map
+    rawProfile[email] = profileObj;
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(rawProfile));
+  } else {
+    // ถ้า rawProfile เป็น null หรือ ว่าง หรือ เป็น profile เดี่ยว ให้เขียนทับด้วย profileObj แบบเดี่ยว
+    localStorage.setItem(PROFILE_KEY, JSON.stringify(profileObj));
+  }
+
+  // 2) pt_users: load, หา user ตาม email แล้ว update fields ที่จำเป็น
+  let users = loadJSON(USERS_KEY, "[]");
+  if (!Array.isArray(users)) users = [];
+
+  const idx = users.findIndex(u => {
+    const ue = (u.email || u.mail || "").toLowerCase();
+    return ue === (email || "").toLowerCase();
   });
 
-  /* ----------------------------------------
-      โหลดข้อมูลโปรไฟล์ (เฉพาะเมื่อ Login แล้ว)
-  ---------------------------------------- */
-  window.onload = () => {
-    const saved = JSON.parse(localStorage.getItem("profileData") || "{}");
-    for (let id in saved) {
-      if (document.getElementById(id)) {
-        document.getElementById(id).value = saved[id];
-      }
-    }
+  const standardized = {
+    // keep identifiers minimal: if user exists, merge; else create new minimal user
+    email: email,
+    name: profileObj.fullname || profileObj.name || profileObj.displayName || "",
+    phone: profileObj.phone || profileObj.tel || "",
+    profile_image: profileObj.avatar || profileObj.profile_image || "",
+    skills: Array.isArray(profileObj.skills) ? profileObj.skills : (typeof profileObj.skills === "string" ? profileObj.skills.split(",").map(s=>s.trim()).filter(Boolean) : []),
+    lat: (typeof profileObj.lat === "number") ? profileObj.lat : (profileObj.pin && profileObj.pin.lat ? profileObj.pin.lat : undefined),
+    lng: (typeof profileObj.lng === "number") ? profileObj.lng : (profileObj.pin && profileObj.pin.lng ? profileObj.pin.lng : undefined),
+    expected_wage: profileObj.expected_wage || profileObj.want_wage || null,
+    available_date: profileObj.available_date || profileObj.available || ""
   };
 
-  /* ----------------------------------------
-      บันทึกโปรไฟล์
-  ---------------------------------------- */
-  document.getElementById("saveProfileBtn").addEventListener("click", () => {
-    const profileData = {
-      fullname: fullname.value,
-      email: email.value,
-      phone: phone.value,
-      gender: gender.value,
-      birthday: birthday.value,
-      address: address.value,
-      skills: skills.value,
-      experience: experience.value
+  if (idx >= 0) {
+    // merge into existing user object
+    users[idx] = {
+      ...users[idx],
+      // prefer existing identifiers, but overwrite fields from profile
+      name: standardized.name || users[idx].name || users[idx].fullname || "",
+      phone: standardized.phone || users[idx].phone || users[idx].tel || "",
+      profile_image: standardized.profile_image || users[idx].profile_image || users[idx].avatar || "",
+      // keep skills as array
+      skills: standardized.skills && standardized.skills.length ? standardized.skills : (users[idx].skills && Array.isArray(users[idx].skills) ? users[idx].skills : (typeof users[idx].skills === "string" ? users[idx].skills.split(",").map(s=>s.trim()).filter(Boolean) : [])),
+      // pin
+      lat: standardized.lat !== undefined ? standardized.lat : (users[idx].lat || users[idx].latitude || users[idx].location_lat),
+      lng: standardized.lng !== undefined ? standardized.lng : (users[idx].lng || users[idx].longitude || users[idx].location_lng),
+      // helper pin object for matching.js
+      pin: (standardized.lat !== undefined && standardized.lng !== undefined) ? { lat: standardized.lat, lng: standardized.lng } : (users[idx].pin || null),
+      expected_wage: standardized.expected_wage || users[idx].expected_wage || users[idx].want_wage || null,
+      available_date: standardized.available_date || users[idx].available_date || users[idx].available || ""
     };
+  } else {
+    // create new
+    const newUser = {
+      id: Date.now().toString(),
+      email: email,
+      role: "seeker",
+      name: standardized.name,
+      phone: standardized.phone,
+      profile_image: standardized.profile_image,
+      skills: standardized.skills,
+      lat: standardized.lat,
+      lng: standardized.lng,
+      pin: (standardized.lat !== undefined && standardized.lng !== undefined) ? { lat: standardized.lat, lng: standardized.lng } : null,
+      expected_wage: standardized.expected_wage,
+      available_date: standardized.available_date,
+      created_at: new Date().toISOString()
+    };
+    users.push(newUser);
+  }
 
-    localStorage.setItem("profileData", JSON.stringify(profileData));
+  localStorage.setItem(USERS_KEY, JSON.stringify(users));
+}
 
-    Swal.fire({
-      icon: "success",
-      title: "บันทึกข้อมูลแล้ว",
-      confirmButtonColor: "#4c55d9"
-    });
-  });
+/* ---------------------------
+   โหลดข้อมูลขึ้นฟอร์ม
+---------------------------- */
+function populateForm(){
+  // load pt_profile_data (may be single object or map)
+  // determine email to use from session (sessionVal may be email or id)
+  let email = null;
+  // If session stores email (common), use it
+  if (sessionVal && sessionVal.includes && sessionVal.includes("@")) email = sessionVal;
+  // else try to lookup user by id in pt_users
+  let users = loadJSON(USERS_KEY, "[]");
+  if (!Array.isArray(users)) users = [];
+  if (!email) {
+    // session might be id
+    const byId = users.find(u => (u.id && u.id.toString() === sessionVal.toString()) || (u.user_id && u.user_id.toString() === sessionVal.toString()));
+    if (byId) email = byId.email || byId.mail || "";
+  }
 
-  /* ----------------------------------------
-      Logout
-  ---------------------------------------- */
-  document.getElementById("logoutBtn").addEventListener("click", () => {
-    Swal.fire({
-      icon:"warning",
-      title:"ออกจากระบบ?",
-      showCancelButton:true,
-      confirmButtonText:"ยืนยัน",
-      confirmButtonColor:"#d9534f"
-    }).then(res=>{
-      if(res.isConfirmed){
-        localStorage.removeItem(SESSION_SEEKER);
-        window.location.href="login.html";
+  // If still no email, we can't proceed
+  if (!email) {
+    // fallback: if profile storage is single object, use its email
+    const rawProfile = loadJSON(PROFILE_KEY, "{}");
+    if (rawProfile && rawProfile.email) email = rawProfile.email;
+  }
+
+  if (!email) {
+    // give up gracefully
+    console.warn("Cannot determine current user email from session.");
+    return;
+  }
+
+  // load profile (supports map or single object)
+  const profile = loadProfileForEmail(email) || {};
+
+  // If profile empty, try to find in pt_users and normalize
+  let norm = {};
+  if ((!profile || Object.keys(profile).length === 0) && users.length) {
+    const u = users.find(u2 => (u2.email && u2.email.toLowerCase() === email.toLowerCase()) || (u2.user_id && u2.user_id.toString() === sessionVal.toString()) || (u2.id && u2.id.toString() === sessionVal.toString()));
+    if (u) norm = normalizeUser(u);
+    // map normalized fields into profile-compatible shape
+    if (norm && Object.keys(norm).length) {
+      if (!profile || Object.keys(profile).length === 0) {
+        // create a profile-like object from norm
+        profile.fullname = profile.fullname || norm.name || "";
+        profile.email = profile.email || norm.email || email;
+        profile.phone = profile.phone || norm.phone || "";
+        profile.avatar = profile.avatar || norm.avatar || "";
+        profile.skills = (norm.skills && norm.skills.length) ? norm.skills.join(", ") : (profile.skills || "");
+        if (norm.pin) { profile.lat = norm.pin.lat; profile.lng = norm.pin.lng; }
+        profile.expected_wage = profile.expected_wage || norm.expected_wage || "";
+        profile.available_date = profile.available_date || norm.available_date || "";
+        profile.experience = profile.experience || (norm.raw && norm.raw.experience) || profile.experience || "";
+        profile.address = profile.address || (norm.raw && norm.raw.address) || profile.address || "";
       }
-    });
+    }
+  }
+
+  // Fill form fields with profile (if empty fallback to values from user record)
+  const fields = ["fullname","email","phone","gender","birthday","address","skills","experience","expected_wage","available_date"];
+  fields.forEach(id => {
+    const el = $(id);
+    if (!el) return;
+    if (profile[id] !== undefined && profile[id] !== null) {
+      el.value = profile[id];
+    } else {
+      // fallback: try from user record
+      const u = users.find(u2 => (u2.email && u2.email.toLowerCase() === email.toLowerCase()) || (u2.user_id && u2.user_id.toString() === sessionVal.toString()) || (u2.id && u2.id.toString() === sessionVal.toString()));
+      if (u) {
+        // map possible fields
+        if (id === "fullname") el.value = u.fullname || u.name || u.displayName || u.name || "";
+        else if (id === "phone") el.value = u.phone || u.tel || u.mobile || "";
+        else if (id === "skills") {
+          if (Array.isArray(u.skills)) el.value = u.skills.join(", ");
+          else if (typeof u.skills === "string") el.value = u.skills;
+        } else if (id === "address") el.value = u.address || u.location || "";
+        else if (id === "experience") el.value = u.experience || "";
+        else if (id === "email") el.value = u.email || u.mail || "";
+        else if (id === "expected_wage") el.value = u.expected_wage || u.want_wage || "";
+        else if (id === "available_date") el.value = u.available_date || u.available || "";
+        else el.value = "";
+      }
+    }
   });
+
+  // avatar
+  const avatarEl = $("avatarPreview");
+  if (profile.avatar) avatarEl.src = profile.avatar;
+  else {
+    // try pt_users profile_image
+    const u = users.find(u2 => (u2.email && u2.email.toLowerCase() === email.toLowerCase()) || (u2.user_id && u2.user_id.toString() === sessionVal.toString()) || (u2.id && u2.id.toString() === sessionVal.toString()));
+    if (u) {
+      const pic = u.profile_image || u.profileImg || u.avatar || u.profile_image_url || "";
+      if (pic) avatarEl.src = pic;
+    }
+  }
+
+  // map: if profile has lat/lng use them; else try user record
+  let lat = undefined, lng = undefined;
+  if (profile.lat && profile.lng) {
+    lat = profile.lat; lng = profile.lng;
+  } else {
+    const u = users.find(u2 => (u2.email && u2.email.toLowerCase() === email.toLowerCase()) || (u2.user_id && u2.user_id.toString() === sessionVal.toString()) || (u2.id && u2.id.toString() === sessionVal.toString()));
+    if (u) {
+      lat = u.lat || (u.pin && u.pin.lat) || u.latitude;
+      lng = u.lng || (u.pin && u.pin.lng) || u.longitude;
+    }
+  }
+
+  // store into window for initMap and for save
+  window.__SEEKER_CURRENT = {
+    email,
+    lat: (typeof lat === "number") ? lat : (lat ? Number(lat) : undefined),
+    lng: (typeof lng === "number") ? lng : (lng ? Number(lng) : undefined)
+  };
+}
+
+/* ---------------------------
+   Avatar upload -> base64 + update profile & pt_users
+---------------------------- */
+$("avatarInput").addEventListener("change", function(){
+  const file = this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const base64 = e.target.result;
+    $("avatarPreview").src = base64;
+
+    // update profile in storage and users
+    const email = window.__SEEKER_CURRENT && window.__SEEKER_CURRENT.email;
+    if (!email) return;
+    // update profile object (merge)
+    let p = loadProfileForEmail(email) || {};
+    p.avatar = base64;
+    // write back
+    saveProfileAndUsers(email, p);
+  };
+  reader.readAsDataURL(file);
+});
+
+/* ---------------------------
+   Map init
+---------------------------- */
+let map, marker;
+function initMap(){
+  populateForm(); // ensure __SEEKER_CURRENT set
+
+  const cur = window.__SEEKER_CURRENT || {};
+  const defLat = (cur.lat !== undefined && cur.lat !== null) ? cur.lat : 13.7563;
+  const defLng = (cur.lng !== undefined && cur.lng !== null) ? cur.lng : 100.5018;
+
+  const pos = { lat: Number(defLat), lng: Number(defLng) };
+
+  map = new google.maps.Map(document.getElementById("map"), {
+    center: pos,
+    zoom: 13
+  });
+
+  marker = new google.maps.Marker({
+    position: pos,
+    map,
+    draggable: true
+  });
+
+  marker.addListener("dragend", () => {
+    const p = marker.getPosition();
+    const lat = p.lat(); const lng = p.lng();
+    // save to profile and users
+    const email = window.__SEEKER_CURRENT && window.__SEEKER_CURRENT.email;
+    if (!email) return;
+    let profileObj = loadProfileForEmail(email) || {};
+    profileObj.lat = lat; profileObj.lng = lng;
+    saveProfileAndUsers(email, profileObj);
+  });
+
+  map.addListener("click", e => {
+    marker.setPosition(e.latLng);
+    const lat = e.latLng.lat(); const lng = e.latLng.lng();
+    const email = window.__SEEKER_CURRENT && window.__SEEKER_CURRENT.email;
+    if (!email) return;
+    let profileObj = loadProfileForEmail(email) || {};
+    profileObj.lat = lat; profileObj.lng = lng;
+    saveProfileAndUsers(email, profileObj);
+  });
+}
+
+/* ---------------------------
+   Save Profile button
+---------------------------- */
+$("saveProfileBtn").addEventListener("click", () => {
+  const email = window.__SEEKER_CURRENT && window.__SEEKER_CURRENT.email;
+  if (!email) {
+    Swal.fire("ไม่พบข้อมูลผู้ใช้","ไม่สามารถบันทึกได้","error");
+    return;
+  }
+
+  const pos = marker ? marker.getPosition() : null;
+  const lat = pos ? pos.lat() : (window.__SEEKER_CURRENT && window.__SEEKER_CURRENT.lat);
+  const lng = pos ? pos.lng() : (window.__SEEKER_CURRENT && window.__SEEKER_CURRENT.lng);
+
+  // collect fields
+  const profileObj = {
+    fullname: $("fullname").value || "",
+    email: $("email").value || email,
+    phone: $("phone").value || "",
+    gender: $("gender").value || "",
+    birthday: $("birthday").value || "",
+    address: $("address").value || "",
+    skills: $("skills").value || "",
+    experience: $("experience").value || "",
+    avatar: $("avatarPreview").src || "",
+    lat: (typeof lat === "number") ? lat : (lat ? Number(lat) : undefined),
+    lng: (typeof lng === "number") ? lng : (lng ? Number(lng) : undefined),
+    expected_wage: ($("expected_wage").value ? Number($("expected_wage").value) : null),
+    available_date: $("available_date").value || ""
+  };
+
+  // Save to PROFILE and update pt_users
+  saveProfileAndUsers(email, profileObj);
+
+  Swal.fire({
+    icon: "success",
+    title: "บันทึกข้อมูลแล้ว",
+    timer: 1200,
+    showConfirmButton: false
+  });
+});
+
+/* ---------------------------
+   Logout (เคลียร์ session เท่านั้น)
+---------------------------- */
+$("logoutBtn").addEventListener("click", () => {
+  Swal.fire({
+    icon:"warning",
+    title:"ออกจากระบบ?",
+    showCancelButton:true,
+    confirmButtonText:"ยืนยัน",
+    confirmButtonColor:"#d9534f"
+  }).then(res => {
+    if (res.isConfirmed) {
+      // เคลียร์เฉพาะ session ไม่ลบข้อมูล
+      localStorage.setItem(SESSION, "");
+      // ไปหน้า login (root)
+      location.href = "../login.html";
+    }
+  });
+});
+
+/* ---------------------------
+   เรียก populate ก่อนแสดงหน้า
+---------------------------- */
+populateForm();
+
 </script>
 
-<!-- GOOGLE MAP API -->
+<!-- Google Maps -->
 <script async
   src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBhOq2e2YYl308urG4HnTDRr4pqKdv8jhE&callback=initMap">
 </script>

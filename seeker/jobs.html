@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
   <style>
     body {
@@ -17,207 +18,148 @@
       overflow:hidden;
     }
 
-    /* ---------------- Sidebar ---------------- */
+    /* Sidebar */
     .sidebar {
       width:240px; background:#ffffff;
       border-right:1px solid #dfe3ef;
       padding:20px 0;
       display:flex; flex-direction:column;
     }
-
     .logo {
-      font-size:20px;
-      font-weight:600;
-      text-align:center;
-      color:#444;
+      font-size:20px; font-weight:600;
+      text-align:center; color:#444;
       margin-bottom:24px;
     }
+    .menu { display:flex; flex-direction:column; gap:6px; padding:0 16px; }
+    .menu a {
+      padding:10px 14px; text-decoration:none;
+      color:#555; font-size:15px;
+      border-radius:8px; transition:0.2s;
+    }
+    .menu a.active { background:#eef2ff; color:#4c55d9; font-weight:600; }
+    .menu a:hover { background:#f4f5ff; }
 
-    .menu {
-      display:flex; flex-direction:column;
-      gap:6px;
-      padding:0 16px;
+    /* logout */
+    .logout-area { margin-top:auto; padding:20px; }
+    .btn-logout {
+      width:100%; padding:10px;
+      background:#d9534f; color:#fff;
+      border:none; border-radius:8px; cursor:pointer;
     }
 
-    .menu a {
-      padding:10px 14px;
-      text-decoration:none;
-      color:#555;
+    /* Main */
+    .main { flex:1; overflow-y:auto; padding:30px 40px; }
+    .page-title { font-size:26px; margin:0; color:#222; font-weight:600; }
+    .subtitle { color:#666; margin-top:4px; font-size:14px; }
+
+        /* Search */
+    .search-box { 
+      margin-top:18px; 
+      position:relative; 
+      width:100%;
+      max-width: 420px;        /* ลดความยาวลงให้พอดี */
+    }
+
+    .search-input {
+      width:100%;
+      padding:11px 16px 11px 42px;
+      border-radius:12px;
+      border:1.5px solid #cfd6e6;
+      background:#fff;
       font-size:15px;
-      border-radius:8px;
+      box-shadow:0 2px 6px rgba(0,0,0,0.06);
       transition:0.2s;
     }
 
-    .menu a.active {
-      background:#eef2ff;
-      color:#4c55d9;
-      font-weight:600;
+    .search-input:focus {
+      border-color:#667eea;
+      box-shadow:0 0 0 4px rgba(102,126,234,0.2);
+      outline:none;
     }
 
-    .menu a:hover { background:#f4f5ff; }
-
-    .logout-area {
-      margin-top:auto;
-      padding:20px;
-    }
-    .btn-logout {
-      width:100%; border:none; padding:10px;
-      background:#d9534f; color:#fff;
-      border-radius:8px;
-      cursor:pointer; font-size:14px;
-    }
-    .btn-logout:hover { opacity:.88; }
-
-    /* ---------------- Main Content ---------------- */
-    .main {
-      flex:1; overflow-y:auto;
-      padding:30px 40px;
+    .search-icon {
+      position:absolute;
+      top:50%;
+      left:14px;
+      transform:translateY(-50%);
+      font-size:18px;
+      color:#667eea;
     }
 
-    .page-title {
-      font-size:26px;
-      color:#222;
-      margin:0;
-      font-weight:600;
-    }
 
-    .subtitle {
-      color:#666;
-      margin-top:4px;
-      font-size:14px;
-    }
-
-    /* ---------------- Job Cards ---------------- */
+    /* Jobs */
     .job-list {
-      margin-top:28px;
+      margin-top:20px;
       display:grid;
       grid-template-columns:repeat(auto-fill, minmax(280px, 1fr));
       gap:18px;
     }
-
     .job-card {
-      background:#fff;
-      border-radius:14px;
+      background:#fff; border-radius:14px;
       box-shadow:0 4px 14px rgba(0,0,0,0.08);
-      padding:18px;
+      padding:18px; cursor:pointer;
+      border:1px solid #e6e8ef;
       transition:0.2s;
       position:relative;
-      cursor:pointer;
     }
     .job-card:hover { transform:translateY(-4px); }
-
-    .job-card img {
-      width:100%;
-      height:150px;
-      border-radius:12px;
-      object-fit:cover;
-      margin-top:10px;
-    }
+    .job-card img { width:100%; height:150px; border-radius:12px; object-fit:cover; margin-top:10px; }
 
     .like-btn {
-      background:none;
-      border:none;
-      font-size:22px;
-      cursor:pointer;
-      position:absolute;
-      top:12px;
-      right:12px;
-    }
-
-    /* ---------------- Modal ---------------- */
-    .modal {
-      position:fixed;
-      inset:0;
-      background:rgba(0,0,0,0.45);
-      display:flex;
-      justify-content:center;
-      align-items:flex-end;
-      visibility:hidden;
-      opacity:0;
-      transition:0.25s;
-    }
-    .modal.active {
-      visibility:visible;
-      opacity:1;
-    }
-
-    .modal-box {
-      width:100%;
-      max-width:520px;
-      background:#fff;
-      border-radius:18px 18px 0 0;
-      padding:24px;
-      transform:translateY(120px);
-      transition:0.25s;
-      position:relative;
-    }
-    .modal.active .modal-box {
-      transform:translateY(0);
-    }
-
-    .modal-close {
-      position:absolute;
-      top:12px; right:20px;
+      background:none; border:none;
       font-size:22px; cursor:pointer;
-      color:#777;
+      position:absolute; top:12px; right:12px;
     }
 
-    #map {
-      height:230px;
-      border-radius:12px;
-      margin-top:12px;
+    /* Modal */
+    .modal {
+      position:fixed; inset:0;
+      background:rgba(0,0,0,0.45);
+      display:flex; justify-content:center; align-items:flex-end;
+      opacity:0; visibility:hidden;
+      transition:0.25s;
     }
+    .modal.active { opacity:1; visibility:visible; }
+    .modal-box {
+      width:100%; max-width:520px;
+      background:#fff; border-radius:18px 18px 0 0;
+      padding:24px; transform:translateY(120px);
+      transition:0.25s; position:relative;
+    }
+    .modal.active .modal-box { transform:translateY(0); }
+    #map { height:230px; border-radius:12px; margin-top:12px; }
 
     .apply-btn {
       background:linear-gradient(90deg,#667eea,#764ba2);
-      color:#fff;
-      width:100%;
-      padding:12px;
-      border:none;
-      border-radius:12px;
-      font-size:17px;
-      cursor:pointer;
-      margin-top:16px;
+      color:#fff; width:100%;
+      padding:12px; border:none;
+      border-radius:12px; font-size:17px;
+      cursor:pointer; margin-top:16px;
     }
   </style>
-
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
 <body>
 
-<!-- ---------------------- LOGIN CHECK ---------------------- -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- Login Check -->
 <script>
 (function () {
   const session = localStorage.getItem("pt_seeker_session");
-
   if (!session) {
-    Swal.fire({
-      icon: "warning",
-      title: "กรุณาเข้าสู่ระบบก่อน",
-      confirmButtonText: "ตกลง"
-    }).then(() => {
-      window.location.href = "../auth.html";
-    });
+    Swal.fire({ icon:"warning", title:"กรุณาเข้าสู่ระบบก่อน" })
+      .then(()=>location.href="../auth.html");
     return;
   }
-
-  try {
-    window.currentUser = JSON.parse(session);
-  } catch {
-    localStorage.removeItem("pt_seeker_session");
-    window.location.href = "../auth.html";
-  }
+  window.currentUser = { email: session };
 })();
 </script>
 
-<!-- ---------------------- Sidebar ---------------------- -->
+<!-- Sidebar -->
 <div class="sidebar">
   <div class="logo">Part-time Match</div>
-
   <div class="menu">
     <a href="profile.html">โปรไฟล์</a>
     <a href="jobs.html" class="active">หางาน</a>
@@ -225,29 +167,34 @@
     <a href="matching.html">AI Matching</a>
     <a href="reviews.html">รีวิว</a>
   </div>
-
   <div class="logout-area">
     <button id="logoutBtn" class="btn-logout">ออกจากระบบ</button>
   </div>
 </div>
 
-<!-- ---------------------- Main ---------------------- -->
+<!-- Main -->
 <div class="main">
   <h2 class="page-title">🔎 หางานพาร์ทไทม์</h2>
-  <p class="subtitle">งานพาร์ทไทม์ที่กำลังเปิดรับสมัคร</p>
+  <p class="subtitle">งานพาร์ทไทม์ที่กำลังเปิดรับสมัครทั้งหมด</p>
+
+  <div class="search-box">
+    <span class="search-icon">🔍</span>
+    <input id="searchInput" type="text" class="search-input"
+           placeholder="ค้นหางาน / ร้าน / พิกัด / ค่าจ้าง ...">
+  </div>
 
   <div id="jobList" class="job-list"></div>
 
   <p id="emptyState"
-     style="text-align:center;color:#888;margin-top:20px;display:none;">
-    ❗ ยังไม่มีงานให้เลือกในตอนนี้
+     style="display:none;text-align:center;color:#888;margin-top:20px;">
+    ❗ ไม่พบงานที่ค้นหา
   </p>
 </div>
 
-<!-- ---------------------- Modal ---------------------- -->
+<!-- Modal -->
 <div id="jobModal" class="modal">
   <div class="modal-box">
-    <span id="closeModal" class="modal-close">&times;</span>
+    <span id="closeModal" style="position:absolute;top:12px;right:20px;font-size:22px;cursor:pointer;">×</span>
 
     <h3 id="jobTitle"></h3>
     <p><strong>ร้าน:</strong> <span id="shopName"></span></p>
@@ -265,69 +212,93 @@
 </div>
 
 <script>
-/* STORAGE KEYS */
+/* Keys */
 const JOB_STORAGE = "pt_jobs";
 const LIKE_KEY = "pt_like_jobs";
 const APPLIED_KEY = "pt_applications";
 
+/* Load Data */
 let jobs = JSON.parse(localStorage.getItem(JOB_STORAGE) || "[]");
 let liked = JSON.parse(localStorage.getItem(LIKE_KEY) || "[]");
 let applications = JSON.parse(localStorage.getItem(APPLIED_KEY) || "[]");
 
-/* ---------------- Render Job Cards ---------------- */
-function renderJobs() {
-  const jobList = document.getElementById("jobList");
+/* ================== SEARCH ================== */
+document.getElementById("searchInput").addEventListener("input", filterJobs);
+
+function clean(text) {
+  return (text || "").toString().trim().toLowerCase();
+}
+
+function filterJobs() {
+  const q = clean(document.getElementById("searchInput").value);
+
+  const filtered = jobs.filter(job => {
+    return (
+      clean(job.title).includes(q) ||
+      clean(job.shop_name).includes(q) ||
+      clean(job.location).includes(q) ||
+      clean(job.description).includes(q) ||
+      String(job.wage || "").includes(q)
+    );
+  });
+
+  renderJobs(filtered);
+}
+
+/* ================== RENDER JOBS ================== */
+function renderJobs(list = jobs) {
+  const container = document.getElementById("jobList");
   const empty = document.getElementById("emptyState");
 
-  jobList.innerHTML = "";
-  empty.style.display = jobs.length === 0 ? "block" : "none";
+  container.innerHTML = "";
+  empty.style.display = list.length ? "none" : "block";
 
-  jobs.forEach(job => {
+  list.forEach(job => {
     const card = document.createElement("div");
     card.className = "job-card";
 
-    const heart = liked.includes(job.id) ? "❤️" : "🤍";
+    const fav = liked.includes(job.id) ? "❤️" : "🤍";
 
     card.innerHTML = `
-      <h3>${job.title}</h3>
-      <p>🏪 ${job.shop_name}</p>
-      <p>📍 ${job.location}</p>
-      <p>💰 ${job.wage} บาท/ชม.</p>
-
-      <button class="like-btn" data-id="${job.id}">${heart}</button>
-
+      <h3>${job.title || "ไม่ระบุตำแหน่ง"}</h3>
+      <p>🏪 ${job.shop_name || "-"}</p>
+      <p>📍 ${job.location || "-"}</p>
+      <p>💰 ${job.wage || 0} บาท/ชม.</p>
+      <button class="like-btn" data-id="${job.id}">${fav}</button>
       ${job.image ? `<img src="${job.image}">` : ""}
     `;
 
+    // เปิด Modal
     card.onclick = e => {
       if (e.target.classList.contains("like-btn")) return;
       openModal(job);
     };
 
+    // ปุ่ม Favorite
     card.querySelector(".like-btn").onclick = e => {
       e.stopPropagation();
       toggleLike(job.id);
     };
 
-    jobList.appendChild(card);
+    container.appendChild(card);
   });
 }
 
+/* ================== LIKE ================== */
 function toggleLike(id) {
-  if (liked.includes(id)) {
-    liked = liked.filter(j => j !== id);
-  } else liked.push(id);
+  if (liked.includes(id)) liked = liked.filter(i => i !== id);
+  else liked.push(id);
 
   localStorage.setItem(LIKE_KEY, JSON.stringify(liked));
-  renderJobs();
+  filterJobs();
 }
 
-/* ---------------- Modal ---------------- */
+/* ================== MODAL ================== */
 let modal = document.getElementById("jobModal");
-document.getElementById("closeModal").onclick =
-  () => modal.classList.remove("active");
-
 let map;
+
+document.getElementById("closeModal").onclick = () =>
+  modal.classList.remove("active");
 
 function openModal(job) {
   modal.classList.add("active");
@@ -339,63 +310,70 @@ function openModal(job) {
   document.getElementById("jobLocation").innerText = "📍 " + (job.location || "-");
   document.getElementById("jobDesc").innerText = job.description || "-";
 
-  const jobImage = document.getElementById("jobImage");
-  if (job.image) {
-    jobImage.src = job.image;
-    jobImage.style.display = "block";
-  } else jobImage.style.display = "none";
+  const img = document.getElementById("jobImage");
+  if (job.image) { img.src = job.image; img.style.display = "block"; }
+  else img.style.display = "none";
 
   setTimeout(() => {
     map = L.map("map").setView([job.lat || 13.75, job.lng || 100.5], 14);
-
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png")
-      .addTo(map);
-
-    if (job.lat && job.lng) {
-      L.marker([job.lat, job.lng]).addTo(map);
-    }
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
+    if (job.lat && job.lng) L.marker([job.lat, job.lng]).addTo(map);
   }, 200);
 
   document.getElementById("applyBtn").onclick = () => applyJob(job);
 }
 
-/* ---------------- SAVE APPLICATION ---------------- */
-function applyJob(job) {
+/* ================== APPLY ================== */
+function uuid() {
+  return "xxxx-4xxx-yxxx".replace(/[xy]/g, c => {
+    const r = Math.random()*16|0;
+    const v = c === "x" ? r : (r&0x3|0x8);
+    return v.toString(16);
+  });
+}
 
-  const exist = applications.find(a => a.id === job.id);
+function applyJob(job) {
+  const email = currentUser.email;
+
+  const exist = applications.find(app =>
+    app.job_id === job.id && app.applicant === email
+  );
+
   if (exist) {
     Swal.fire("คุณสมัครงานนี้แล้ว!", "", "info");
     return;
   }
 
-  const newApply = {
-    id: job.id,
+  const newApp = {
+    id: uuid(),
+    job_id: job.id,
     job_title: job.title,
     shop_name: job.shop_name,
     wage: job.wage,
     location: job.location,
-    status: "pending",
-    applied_at: Date.now()
+    applicant: email,
+    date: Date.now(),
+    status: "pending"
   };
 
-  applications.push(newApply);
+  applications.push(newApp);
   localStorage.setItem(APPLIED_KEY, JSON.stringify(applications));
 
   Swal.fire("ส่งใบสมัครแล้ว!", "", "success");
 }
 
-/* ---------------- Logout ---------------- */
+/* ================== LOGOUT ================== */
 document.getElementById("logoutBtn").onclick = () => {
   Swal.fire({
-    title: "ออกจากระบบ?",
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonText: "ออกจากระบบ",
-    cancelButtonText: "ยกเลิก"
-  }).then(res => {
-    if (res.isConfirmed) {
+    icon:"question",
+    title:"ออกจากระบบ?",
+    showCancelButton:true,
+    confirmButtonText:"ออกจากระบบ",
+    cancelButtonText:"ยกเลิก"
+  }).then(r => {
+    if (r.isConfirmed) {
       localStorage.removeItem("pt_seeker_session");
-      location.href = "../auth.html";
+      location.href="../auth.html";
     }
   });
 };

@@ -125,7 +125,7 @@
 
 <script>
 // ---------------------------
-// 🔐 ตรวจสอบ Login ร้านค้า
+// 🔐 ตรวจสอบการล็อกอินร้านค้า
 // ---------------------------
 const SESSION_SHOP = "pt_shop_session";
 const USERS_KEY = "pt_users";
@@ -133,17 +133,18 @@ const JOB_STORAGE = "pt_jobs";
 
 const shopEmail = localStorage.getItem(SESSION_SHOP);
 if (!shopEmail) {
-  Swal.fire("กรุณาเข้าสู่ระบบก่อน", "", "warning")
-    .then(() => location.href = "../auth.html");
+  alert("กรุณาเข้าสู่ระบบก่อน");
+  window.location.href = "../auth.html";
 }
 
+// ดึงข้อมูลร้านเพื่อใช้ shop_name
 const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
 const shopInfo = users.find(u => u.email === shopEmail);
 
 let jobs = JSON.parse(localStorage.getItem(JOB_STORAGE)) || [];
 
 // ---------------------------
-// UI Elements
+// 🧭 UI Elements
 // ---------------------------
 const modal = document.getElementById("jobModal");
 const openBtn = document.getElementById("addJobBtn");
@@ -156,7 +157,7 @@ let map, marker;
 let selectedImageBase64 = "";
 
 // ---------------------------
-// เปิด Modal
+// 📍 เปิด Modal
 // ---------------------------
 openBtn.onclick = () => {
   modal.classList.remove("hidden");
@@ -164,11 +165,13 @@ openBtn.onclick = () => {
   setTimeout(initMap, 200);
 };
 
-// ปิด modal
+// ---------------------------
+// ❌ ปิด Modal
+// ---------------------------
 closeBtn.onclick = () => modal.classList.add("hidden");
 
 // ---------------------------
-// Image Preview
+// 🖼 Preview Image
 // ---------------------------
 document.getElementById("jobImage").addEventListener("change", e => {
   const file = e.target.files[0];
@@ -185,7 +188,7 @@ document.getElementById("jobImage").addEventListener("change", e => {
 });
 
 // ---------------------------
-// Map / Pick Location
+// 🗺️ Leaflet Map
 // ---------------------------
 function initMap() {
   if (!map) {
@@ -204,21 +207,22 @@ function initMap() {
 }
 
 // ---------------------------
-// บันทึกงาน
+// ✅ บันทึกงาน
 // ---------------------------
 document.getElementById("saveJobBtn").onclick = () => {
   const title = document.getElementById("jobTitle").value.trim();
-  const description = document.getElementById("jobDesc").value.trim();
-  const location = document.getElementById("jobLocation").value.trim();
+  const desc = document.getElementById("jobDesc").value.trim();
+  const locText = document.getElementById("jobLocation").value.trim();
   const start = document.getElementById("jobStart").value;
   const wage = document.getElementById("jobWage").value;
   const contact = document.getElementById("jobContact").value;
 
-  if (!title || !location || !wage) {
+  if (!title || !locText || !wage) {
     Swal.fire("กรุณากรอกข้อมูลให้ครบ", "", "warning");
     return;
   }
 
+  // ดึง lat/lng ถ้ามี
   let lat = null, lng = null;
   if (marker) {
     lat = marker.getLatLng().lat;
@@ -230,8 +234,8 @@ document.getElementById("saveJobBtn").onclick = () => {
     shop_email: shopEmail,
     shop_name: shopInfo?.name || "ร้านของฉัน",
     title,
-    description,
-    location,
+    desc,
+    location_text: locText,
     lat,
     lng,
     startDate: start,
@@ -251,7 +255,7 @@ document.getElementById("saveJobBtn").onclick = () => {
 };
 
 // ---------------------------
-// แสดงงานร้านค้า
+// 📌 แสดงงานทั้งหมดของร้าน
 // ---------------------------
 function renderJobs() {
   const shopJobs = jobs.filter(j => j.shop_email === shopEmail);
@@ -263,21 +267,18 @@ function renderJobs() {
     const card = document.createElement("div");
     card.className = "job-card";
     card.innerHTML = `
-      <h3>${job.title}</h3>
-      <p>🏪 <strong>${job.shop_name}</strong></p>
-      <p>📍 ${job.location}</p>
+      <h4>${job.title}</h4>
+      <p>🏪 ร้าน: ${job.shop_name}</p>
+      <p>📍 ${job.location_text}</p>
       <p>🗺 Lat: ${job.lat || "-"}, Lng: ${job.lng || "-"}</p>
-      <p>💰 <strong>${job.wage} บาท/ชม.</strong></p>
-      <p>📅 เริ่มงาน: ${job.startDate || "-"}</p>
-      ${job.image ? `<img src="${job.image}" style="width:100%;border-radius:8px;margin-top:10px;">` : ""}
+      <p>💰 ${job.wage} บาท/ชม.</p>
+      <p>เริ่มงาน: ${job.startDate || "-"}</p>
     `;
     jobListEl.appendChild(card);
   });
 }
 
-// ---------------------------
-// Reset Form
-// ---------------------------
+// รีเซ็ตฟอร์ม
 function resetForm() {
   document.getElementById("jobTitle").value = "";
   document.getElementById("jobDesc").value = "";
@@ -285,11 +286,11 @@ function resetForm() {
   document.getElementById("jobStart").value = "";
   document.getElementById("jobWage").value = "";
   document.getElementById("jobContact").value = "";
-  document.getElementById("previewImage").style.display = "none";
   selectedImageBase64 = "";
+  document.getElementById("previewImage").style.display = "none";
 }
 
-// โหลดครั้งแรก
+// โหลดงานทันที
 renderJobs();
 </script>
 

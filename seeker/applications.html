@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <style>
     body {
@@ -18,6 +19,7 @@
       overflow:hidden;
     }
 
+    /* ---------------- Sidebar ---------------- */
     .sidebar {
       width:240px;
       background:#ffffff;
@@ -77,6 +79,7 @@
       font-size:14px;
     }
 
+    /* ---------------- Main ---------------- */
     .main {
       flex:1;
       overflow-y:auto;
@@ -96,6 +99,7 @@
       font-size:14px;
     }
 
+    /* ---------------- Cards ---------------- */
     .app-list {
       margin-top:28px;
       display:grid;
@@ -111,7 +115,7 @@
       transition:0.2s;
     }
 
-    .status-badge {
+    .badge {
       display:inline-block;
       padding:4px 10px;
       border-radius:8px;
@@ -120,11 +124,7 @@
       color:#fff;
     }
 
-    .s-pending { background:#f2c94c; }
-    .s-approved { background:#27ae60; }
-    .s-rejected { background:#eb5757; }
-
-    .cancel-btn {
+    .btn-cancel {
       margin-top:12px;
       padding:10px;
       width:100%;
@@ -135,9 +135,13 @@
       cursor:pointer;
       font-size:15px;
     }
-  </style>
 
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    .no-data {
+      text-align:center;
+      color:#888;
+      margin-top:20px;
+    }
+  </style>
 </head>
 
 <body>
@@ -164,121 +168,155 @@
     <h2 class="page-title">📄 ใบสมัครของฉัน</h2>
     <p class="subtitle">ประวัติการสมัครงานทั้งหมด</p>
 
-    <div id="appList" class="app-list"></div>
-
-    <p id="emptyState" style="text-align:center;color:#888;margin-top:20px;display:none;">
-      ❗ คุณยังไม่ได้สมัครงานใดเลย
-    </p>
+    <div id="applicationsList" class="app-list"></div>
   </div>
 
 
 <script>
+// ----------------------------------------------------------
+// CONFIG
+// ----------------------------------------------------------
+const SESSION = "pt_seeker_session";
+const APPS_KEY = "pt_applications";
+const JOBS_KEY = "jobs";
 
-//
-// 🔒 1) ตรวจสอบเข้าสู่ระบบก่อนโหลดหน้า
-//
-const session = JSON.parse(localStorage.getItem("pt_seeker_session") || "null");
-if (!session) {
-  Swal.fire({
-    icon: "warning",
-    title: "กรุณาเข้าสู่ระบบก่อน",
-    confirmButtonText: "ไปหน้าเข้าสู่ระบบ"
-  }).then(() => {
-    location.href = "../auth.html";
-  });
+// ----------------------------------------------------------
+// LOGIN CHECK
+// ----------------------------------------------------------
+const seekerEmail = localStorage.getItem(SESSION);
+if (!seekerEmail) {
+  Swal.fire("กรุณาเข้าสู่ระบบก่อน", "", "warning")
+    .then(() => location.href = "../auth.html");
 }
 
-//
-// 2) โหลดข้อมูลใบสมัคร
-//
-const APPLIED_KEY = "pt_applications";
-let apps = JSON.parse(localStorage.getItem(APPLIED_KEY) || "[]");
+// ----------------------------------------------------------
+// LOAD DATA
+// ----------------------------------------------------------
+const loadApplications = () => {
+  const all = JSON.parse(localStorage.getItem(APPS_KEY) || "[]");
+  return all.filter(a => a.applicant === seekerEmail);
+};
 
-function renderApps() {
-  const list = document.getElementById("appList");
-  const empty = document.getElementById("emptyState");
+const loadJobs = () =>
+  JSON.parse(localStorage.getItem(JOBS_KEY) || "[]");
+
+// ----------------------------------------------------------
+// STATUS COLOR & TEXT
+// ----------------------------------------------------------
+function getStatusData(status) {
+  return ({
+    pending:    { text:"⏳ รอดำเนินการ", color:"#f2c94c" },
+    reviewing:  { text:"🔎 ร้านกำลังตรวจสอบ", color:"#3498db" },
+    interview:  { text:"📞 นัดสัมภาษณ์", color:"#9b59b6" },
+    approved:   { text:"✅ ผ่านการคัดเลือก", color:"#27ae60" },
+    hired:      { text:"🎉 ได้งานแล้ว", color:"#1f8a4c" },
+    rejected:   { text:"❌ ไม่ผ่าน", color:"#eb5757" },
+    cancelled:  { text:"⚪ ยกเลิกแล้ว", color:"#95a5a6" },
+  }[status] || { text:status, color:"#999" });
+}
+
+// ----------------------------------------------------------
+// RENDER APPLICATIONS
+// ----------------------------------------------------------
+function renderApplications() {
+  const apps = loadApplications();
+  const jobs = loadJobs();
+  const list = document.getElementById("applicationsList");
 
   list.innerHTML = "";
-  empty.style.display = apps.length === 0 ? "block" : "none";
+
+  if (apps.length === 0) {
+    list.innerHTML = `<p class="no-data">❗ คุณยังไม่ได้สมัครงานใดเลย</p>`;
+    return;
+  }
+
+  apps.sort((a,b) => new Date(b.applied_at) - new Date(a.applied_at));
 
   apps.forEach(app => {
+    const job = jobs.find(j => j.id === app.job_id);
+
     const card = document.createElement("div");
     card.className = "app-card";
 
-    const statusClass =
-      app.status === "approved" ? "s-approved" :
-      app.status === "rejected" ? "s-rejected" : "s-pending";
-
-    const statusText =
-      app.status === "approved" ? "รับเข้าทำงานแล้ว" :
-      app.status === "rejected" ? "ไม่ผ่านการคัดเลือก" : "รอตรวจสอบ";
+    const status = getStatusData(app.status);
 
     const date = new Date(app.applied_at).toLocaleString("th-TH");
 
     card.innerHTML = `
-      <h3>${app.job_title}</h3>
-      <p>🏪 ${app.shop_name}</p>
-      <p>📍 ${app.location}</p>
-      <p>💰 ${app.wage} บาท/ชม.</p>
+      <h3>${app.job_title || "(งานถูกลบแล้ว)"}</h3>
+      <p>🏪 ${app.shop_name || "-"}</p>
+      <p>📍 ${app.location || "-"}</p>
+      <p>💰 ${app.wage || "-"} บาท/ชม.</p>
 
       <p><strong>วันที่สมัคร:</strong> ${date}</p>
 
-      <span class="status-badge ${statusClass}">
-        ${statusText}
+      <span class="badge" style="background:${status.color}">
+        ${status.text}
       </span>
-
-      <button class="cancel-btn" data-id="${app.id}">ยกเลิกใบสมัคร</button>
     `;
 
-    card.querySelector(".cancel-btn").onclick = () =>
-      cancelApplication(app.id);
+    // ปุ่มยกเลิกเฉพาะ pending
+    if (app.status === "pending") {
+      const btn = document.createElement("button");
+      btn.className = "btn-cancel";
+      btn.innerHTML = `<i class="fa-solid fa-ban"></i> ยกเลิกใบสมัคร`;
+      btn.onclick = () => cancelApplication(app.id);
+      card.appendChild(btn);
+    }
 
     list.appendChild(card);
   });
 }
 
-//
-// 3) ฟังก์ชันยกเลิกใบสมัคร
-//
+// ----------------------------------------------------------
+// CANCEL APPLICATION  (เปลี่ยนสถานะเป็น cancelled)
+// ----------------------------------------------------------
 function cancelApplication(id) {
   Swal.fire({
-    title: "ยกเลิกใบสมัคร?",
-    text: "คุณต้องการลบใบสมัครนี้หรือไม่",
-    icon: "warning",
-    showCancelButton: true,
-    confirmButtonText: "ยกเลิกใบสมัคร",
-    cancelButtonText: "ปิด"
+    title:"ยกเลิกใบสมัคร?",
+    text:"ต้องการยกเลิกใบสมัครนี้หรือไม่",
+    icon:"warning",
+    showCancelButton:true,
+    confirmButtonText:"ยืนยัน",
+    cancelButtonText:"ยกเลิก"
   }).then(res => {
     if (!res.isConfirmed) return;
 
-    apps = apps.filter(a => a.id !== id);
-    localStorage.setItem(APPLIED_KEY, JSON.stringify(apps));
+    let all = JSON.parse(localStorage.getItem(APPS_KEY) || "[]");
 
-    renderApps();
+    all = all.map(a => {
+      if (a.id === id) a.status = "cancelled";
+      return a;
+    });
 
-    Swal.fire("ลบแล้ว", "ใบสมัครถูกยกเลิกเรียบร้อย", "success");
+    localStorage.setItem(APPS_KEY, JSON.stringify(all));
+
+    Swal.fire("สำเร็จ", "คุณได้ยกเลิกใบสมัครแล้ว", "success");
+
+    renderApplications();
   });
 }
 
-//
-// 4) ออกจากระบบ
-//
+// ----------------------------------------------------------
+// LOGOUT
+// ----------------------------------------------------------
 document.getElementById("logoutBtn").onclick = () => {
   Swal.fire({
-    title: "ออกจากระบบ?",
-    icon: "question",
-    showCancelButton: true,
-    confirmButtonText: "ออกจากระบบ",
-    cancelButtonText: "ยกเลิก"
-  }).then(res => {
-    if (res.isConfirmed) {
-      localStorage.removeItem("pt_seeker_session");
-      location.href = "../auth.html";
+    title:"ออกจากระบบ?",
+    icon:"question",
+    showCancelButton:true,
+    confirmButtonText:"ออกจากระบบ",
+    cancelButtonText:"ยกเลิก"
+  }).then(res=>{
+    if(res.isConfirmed){
+      localStorage.removeItem(SESSION);
+      location.href="../auth.html";
     }
   });
 };
 
-renderApps();
+// START
+renderApplications();
 </script>
 
 </body>

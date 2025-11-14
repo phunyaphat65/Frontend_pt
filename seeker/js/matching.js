@@ -1,10 +1,5 @@
 // seeker/js/matching.js
-// Matching page for seeker/matching.html
-// Works with data model:
-// USERS: { email, name, role, skills (string or array), experience (string) }
-// JOBS: { id, shop_email, shop_name, title, description, wage, startDate, location, lat, lng, image, rating, skills (array), experience (string) }
-// APPS: applications saved under key "pt_applications"
-// Session: pt_seeker_session
+// Fully improved matching system + ranking
 
 (function () {
   const USERS_KEY = "pt_users";
@@ -18,7 +13,7 @@
   const emptyState = document.getElementById("emptyState");
   const userEmailEl = document.getElementById("userEmail");
 
-  // Modal DOM
+  // Modal
   const modal = document.getElementById("jobModal");
   const closeModalEl = document.getElementById("closeModal");
   const modalTitle = document.getElementById("modalTitle");
@@ -31,57 +26,60 @@
   const modalApplyBtn = document.getElementById("modalApplyBtn");
   const modalCloseBtn = document.getElementById("modalCloseBtn");
 
-  // session check
+  // ---- SESSION CHECK ----
   const seekerEmail = localStorage.getItem(SESSION_SEEKER);
   if (!seekerEmail) {
     Swal.fire({
       icon: "warning",
       title: "กรุณาเข้าสู่ระบบ",
-      text: "คุณต้องเข้าสู่ระบบบัญชีผู้สมัครเพื่อดูการจับคู่งาน"
+      text: "คุณต้องเข้าสู่ระบบบัญชีผู้สมัครเพื่อดูงานที่แมตช์"
     }).then(() => location.href = "../auth.html");
     return;
   }
-
   userEmailEl.textContent = seekerEmail;
 
-  // load helpers
+  // ---- LOAD/SAVE HELPERS ----
   const loadUsers = () => JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
   const loadJobs  = () => JSON.parse(localStorage.getItem(JOBS_KEY) || "[]");
   const loadApps  = () => JSON.parse(localStorage.getItem(APPS_KEY) || "[]");
   const saveApps  = apps => localStorage.setItem(APPS_KEY, JSON.stringify(apps));
   const loadLikes = () => JSON.parse(localStorage.getItem(LIKES_KEY) || "[]");
 
-  // normalize helpers
+  // ---- SAFETY NORMALIZER ----
   function toArrayMaybe(value) {
     if (!value) return [];
     if (Array.isArray(value)) return value;
-    if (typeof value === "string") {
-      // split by comma or semicolon
+    if (typeof value === "string")
       return value.split(/[,;]+/).map(s => s.trim()).filter(Boolean);
-    }
     return [];
   }
 
-  // matching algorithm:
-  // - if job.skills intersects with user.skills -> match
-  // - or if job.experience is substring of user.experience -> match
-  // - small boost for location proximity (if lat/lng present, but we don't compute distance here)
-  function getMatchedJobsForUser(user) {
-    const jobs = loadJobs();
-    const userSkills = toArrayMaybe(user.skills).map(s => s.toLowerCase());
-    const userExp = (user.experience || "").toLowerCase();
+  // ---- MATCH SCORE SYSTEM ----
+  function calculateMatchScore(job, user) {
+    let score = 0;
 
-    return jobs.filter(job => {
-      const jobSkills = toArrayMaybe(job.skills).map(s => s.toLowerCase());
-      const skillMatch = jobSkills.some(js => userSkills.includes(js));
-      const expMatch = job.experience && userExp ? userExp.includes((job.experience || "").toLowerCase()) : false;
-      // If neither skills nor experience available, fallback: show popular jobs (rating >=4) or same city substring
-      const fallback = (!jobSkills.length && !job.experience) ? (job.rating && job.rating >= 4) : false;
-      return skillMatch || expMatch || fallback;
+    const jobSkills  = toArrayMaybe(job.skills).map(s => s.toLowerCase());
+    const userSkills = toArrayMaybe(user.skills).map(s => s.toLowerCase());
+
+    // skills match
+    jobSkills.forEach(js => {
+      if (userSkills.includes(js)) score += 3;
     });
+
+    // experience match
+    if (job.experience && user.experience) {
+      const j = job.experience.toLowerCase();
+      const u = user.experience.toLowerCase();
+      if (u.includes(j)) score += 2;
+    }
+
+    // rating helps ranking
+    if (job.rating) score += (job.rating * 0.3);
+
+    return score;
   }
 
-  // render list
+  // ---- RENDER FUNCTION ----
   function renderMatches() {
     const users = loadUsers();
     const jobs = loadJobs();
@@ -97,25 +95,30 @@
       return;
     }
 
-    const matched = getMatchedJobsForUser(user);
+    // สร้างคะแนนแมตช์ให้ทุกงาน
+    const rankedJobs = jobs
+      .map(job => ({
+        ...job,
+        matchScore: calculateMatchScore(job, user)
+      }))
+      .sort((a, b) => b.matchScore - a.matchScore);
 
     matchList.innerHTML = "";
-    emptyState.style.display = matched.length === 0 ? "block" : "none";
+    emptyState.style.display = rankedJobs.length === 0 ? "block" : "none";
 
-    matched.forEach(job => {
+    rankedJobs.forEach(job => {
       const alreadyApplied = apps.some(a => a.applicant === seekerEmail && a.job_id === job.id);
       const liked = likes.some(l => l.user === seekerEmail && l.job_id === job.id);
 
       const card = document.createElement("div");
       card.className = "match-card";
 
-      // thumbnail (use job.image if present)
+      // --- Thumbnail ---
       const thumb = document.createElement("div");
       thumb.className = "thumb";
       if (job.image) {
         const img = document.createElement("img");
         img.src = job.image;
-        img.alt = job.title || "thumb";
         img.style.width = "100%";
         img.style.height = "100%";
         img.style.objectFit = "cover";
@@ -124,70 +127,73 @@
         thumb.textContent = "🏪";
       }
 
+      // --- Meta ---
       const meta = document.createElement("div");
       meta.className = "meta";
       meta.innerHTML = `
-        <div class="title">${escapeHtml(job.title || "-")}</div>
-        <div class="shop">${escapeHtml(job.shop_name || "-")}</div>
+        <div class="title">${escapeHtml(job.title)}</div>
+        <div class="shop">${escapeHtml(job.shop_name)}</div>
         <div class="desc">${escapeHtml(job.description || "-")}</div>
+
         <div class="info-row">
           <div>⭐ ${job.rating || 0}/5</div>
           <div>💰 ${job.wage || "-"} บาท/ชม.</div>
           <div>📍 ${escapeHtml(job.location || "-")}</div>
         </div>
+
+        <div class="match-score">คะแนนแมตช์: ${job.matchScore.toFixed(1)}</div>
       `;
 
+      // --- Actions ---
       const actions = document.createElement("div");
       actions.className = "actions";
       actions.innerHTML = `
-        <button class="btn secondary view-btn">${alreadyApplied ? "✅ สมัครแล้ว" : "รายละเอียด"}</button>
+        <button class="btn secondary view-btn">${alreadyApplied ? "ดูรายละเอียด" : "รายละเอียด"}</button>
         <button class="btn primary apply-btn" ${alreadyApplied ? "disabled" : ""}>${alreadyApplied ? "สมัครแล้ว" : "สมัคร"}</button>
       `;
 
-      // Like heart
+      // Like button
       const likeBtn = document.createElement("div");
       likeBtn.className = "like-btn";
-      likeBtn.style.marginLeft = "8px";
-      likeBtn.style.cursor = "pointer";
       likeBtn.textContent = liked ? "❤️" : "🤍";
       likeBtn.addEventListener("click", (e) => {
         e.stopPropagation();
         toggleLike(job.id);
       });
 
-      // attach events
+      // Events
       actions.querySelector(".view-btn").addEventListener("click", () => openModal(job));
       actions.querySelector(".apply-btn").addEventListener("click", () => applyToJob(job));
-
-      // clicking the card also opens details
-      card.addEventListener("click", (e) => {
-        // avoid opening when clicking the apply/view buttons or like
-        if (e.target.closest('.btn')) return;
-        openModal(job);
+      card.addEventListener("click", e => {
+        if (!e.target.closest(".btn")) openModal(job);
       });
 
-      // assemble
+      // Assemble
+      const wrap = document.createElement("div");
+      wrap.style.display = "flex";
+      wrap.style.flexDirection = "column";
+      wrap.style.alignItems = "flex-end";
+      wrap.appendChild(likeBtn);
+      wrap.appendChild(actions);
+
       card.appendChild(thumb);
       card.appendChild(meta);
-      const actionWrap = document.createElement("div");
-      actionWrap.style.display = "flex"; actionWrap.style.flexDirection = "column"; actionWrap.style.alignItems = "flex-end";
-      actionWrap.appendChild(likeBtn);
-      actionWrap.appendChild(actions);
-      card.appendChild(actionWrap);
-
+      card.appendChild(wrap);
       matchList.appendChild(card);
     });
   }
 
-  // open modal with job details
+  // ---- MODAL ----
   function openModal(job) {
     modal.classList.add("active");
-    modalTitle.textContent = job.title || "-";
-    modalShop.textContent = job.shop_name || "-";
-    modalRating.textContent = (job.rating ? `⭐ ${job.rating}/5` : "");
-    modalWage.textContent = job.wage || "-";
-    modalLocation.textContent = job.location || "-";
-    modalDesc.textContent = job.description || "-";
+
+    modalTitle.textContent = job.title;
+    modalShop.textContent = job.shop_name;
+    modalRating.textContent = `⭐ ${job.rating || 0}/5`;
+    modalWage.textContent = job.wage;
+    modalLocation.textContent = job.location;
+    modalDesc.textContent = job.description;
+
     if (job.image) {
       modalThumb.src = job.image;
       modalThumb.style.display = "block";
@@ -195,13 +201,12 @@
       modalThumb.style.display = "none";
     }
 
-    // set apply button state
     const apps = loadApps();
     const already = apps.some(a => a.applicant === seekerEmail && a.job_id === job.id);
-    modalApplyBtn.textContent = already ? "✅ สมัครแล้ว" : "สมัครงานนี้";
-    modalApplyBtn.disabled = !!already;
 
-    // attach apply handler (fresh closure)
+    modalApplyBtn.textContent = already ? "สมัครแล้ว" : "สมัครงานนี้";
+    modalApplyBtn.disabled = already;
+
     modalApplyBtn.onclick = () => applyToJob(job);
   }
 
@@ -209,7 +214,7 @@
     modal.classList.remove("active");
   }
 
-  // apply flow
+  // ---- APPLY JOB ----
   function applyToJob(job) {
     const apps = loadApps();
     if (apps.some(a => a.applicant === seekerEmail && a.job_id === job.id)) {
@@ -220,7 +225,7 @@
 
     Swal.fire({
       title: "ยืนยันการสมัคร?",
-      text: `คุณต้องการสมัครงาน "${job.title}" หรือไม่?`,
+      text: job.title,
       icon: "question",
       showCancelButton: true,
       confirmButtonText: "สมัคร",
@@ -228,57 +233,50 @@
     }).then(res => {
       if (!res.isConfirmed) return;
 
-      const newApp = {
+      apps.push({
         id: Date.now(),
         applicant: seekerEmail,
         job_id: job.id,
         job_title: job.title,
         shop_name: job.shop_name,
         date: new Date().toISOString(),
-        status: "pending",
-        note: ""
-      };
+        status: "pending"
+      });
 
-      apps.push(newApp);
       saveApps(apps);
-      Swal.fire("สมัครเรียบร้อย", "ระบบได้บันทึกใบสมัครของคุณแล้ว", "success");
+      Swal.fire("สมัครเรียบร้อย", "", "success");
       closeModal();
       renderMatches();
     });
   }
 
-  // like toggler
+  // ---- LIKE ----
   function toggleLike(jobId) {
     const likes = loadLikes();
     const idx = likes.findIndex(l => l.user === seekerEmail && l.job_id === jobId);
-    if (idx >= 0) {
-      likes.splice(idx, 1);
-    } else {
-      likes.push({ id: Date.now(), user: seekerEmail, job_id: jobId });
-    }
+
+    if (idx >= 0) likes.splice(idx, 1);
+    else likes.push({ id: Date.now(), user: seekerEmail, job_id: jobId });
+
     localStorage.setItem(LIKES_KEY, JSON.stringify(likes));
     renderMatches();
   }
 
-  // escape helper (simple)
-  function escapeHtml(unsafe) {
-    if (!unsafe && unsafe !== 0) return "";
-    return String(unsafe)
+  // ---- ESCAPE ----
+  function escapeHtml(v) {
+    if (!v) return "";
+    return String(v)
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;");
+      .replace(/>/g, "&gt;");
   }
 
-  // logout
+  // ---- LOGOUT ----
   document.getElementById("logoutBtn").addEventListener("click", () => {
     Swal.fire({
       title: "ออกจากระบบ?",
-      icon: "question",
       showCancelButton: true,
-      confirmButtonText: "ออกจากระบบ",
-      cancelButtonText: "ยกเลิก"
+      confirmButtonText: "ออกจากระบบ"
     }).then(r => {
       if (r.isConfirmed) {
         localStorage.removeItem(SESSION_SEEKER);
@@ -287,15 +285,14 @@
     });
   });
 
-  // modal close handlers
+  // ---- MODAL EVENTS ----
   closeModalEl.addEventListener("click", closeModal);
   modalCloseBtn.addEventListener("click", closeModal);
-  // close if click outside modal-box
-  modal.addEventListener("click", (e) => {
+  modal.addEventListener("click", e => {
     if (e.target === modal) closeModal();
   });
 
-  // init
+  // INIT
   renderMatches();
 
   // expose render for debugging if needed
