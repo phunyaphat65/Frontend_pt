@@ -310,7 +310,7 @@ document.getElementById("logoutBtn").onclick = () => {
   }).then(res=>{
     if(res.isConfirmed){
       localStorage.removeItem(SESSION);
-      location.href="../auth.html";
+      location.href="../index.html";
     }
   });
 };

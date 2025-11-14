@@ -338,7 +338,7 @@
   document.getElementById("logoutBtn").onclick = () => {
     localStorage.removeItem(SESSION_KEY);
     Swal.fire("ออกจากระบบสำเร็จ", "", "success").then(() => {
-      location.href = "../auth.html";
+      location.href = "../index.html";
     });
   };
 

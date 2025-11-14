@@ -12,66 +12,153 @@
 
   <style>
     body { font-family: "Prompt", sans-serif; background: #f8faff; margin: 0; }
+
+    /* Navbar */
     .navbar {
       background: linear-gradient(90deg,#667eea,#764ba2);
-      padding: 14px 24px; color: #fff;
-      display: flex; justify-content: space-between; align-items: center;
+      padding: 14px 24px;
+      color: #fff;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .navbar .nav-right a { color:#fff; margin-right:12px; text-decoration:none; }
-    .navbar .nav-right a.active { font-weight:600; text-decoration:underline; }
 
-    .container {
-      max-width:900px; margin:40px auto; background:#fff;
-      padding:35px 45px; border-radius:14px;
-      box-shadow:0 6px 18px rgba(0,0,0,0.08);
+    .nav-right a {
+      color:#fff;
+      margin-right:14px;
+      text-decoration:none;
+      font-weight:500;
     }
+
+    .nav-right a.active {
+      text-decoration:underline;
+      font-weight:600;
+      opacity:0.85;
+    }
+
+    /* Logout button */
+    .btn-logout {
+      background: rgba(255,255,255,0.25);
+      border: none;
+      padding: 8px 14px;
+      color: #fff;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.25s;
+    }
+    .btn-logout:hover {
+      background: rgba(255,255,255,0.35);
+    }
+
+    /* Container */
+    .container {
+      max-width:900px;
+      margin:40px auto;
+      background:#fff;
+      padding:35px 45px;
+      border-radius:14px;
+      box-shadow:0 6px 18px rgba(0,0,0,0.08);
+      animation: fadeIn .4s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity:0; transform:translateY(8px); }
+      to { opacity:1; transform:translateY(0); }
+    }
+
     .job-list {
-      display:grid; gap:16px;
+      display:grid;
+      gap:16px;
       grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
     }
+
     .job-card {
-      background:#fafbff; padding:16px; border-radius:12px;
-      transition:.25s; box-shadow:0 3px 8px rgba(0,0,0,0.1);
+      background:#fafbff;
+      padding:16px;
+      border-radius:12px;
+      box-shadow:0 3px 8px rgba(0,0,0,0.1);
+      transition:.25s;
     }
-    .job-card:hover { transform:translateY(-4px); }
+
+    .job-card:hover {
+      transform:translateY(-4px);
+      box-shadow:0 4px 12px rgba(0,0,0,0.12);
+    }
 
     /* Modal */
-    .modal { position:fixed; inset:0; display:flex;
-      justify-content:center; align-items:center;
-      background:rgba(0,0,0,0.45); z-index:999; }
+    .modal {
+      position:fixed;
+      inset:0;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      background:rgba(0,0,0,0.45);
+      z-index:999;
+    }
+
     .hidden { display:none; }
 
     .modal-content {
-      background:#fff; padding:25px 30px; width:95%; max-width:600px;
-      border-radius:14px; max-height:90vh; overflow-y:auto;
-      box-shadow:0 8px 24px rgba(0,0,0,0.2); position:relative;
+      background:#fff;
+      padding:25px 30px;
+      width:95%;
+      max-width:600px;
+      border-radius:16px;
+      max-height:90vh;
+      overflow-y:auto;
+      box-shadow:0 8px 24px rgba(0,0,0,0.2);
+      position:relative;
+      animation: fadeIn .35s ease-in-out;
     }
+
     .modal-content input, .modal-content textarea {
-      width:100%; padding:9px; margin-bottom:10px;
-      border-radius:8px; border:1px solid #ccc; font-size:15px;
+      width:100%;
+      padding:9px;
+      margin-bottom:10px;
+      border-radius:8px;
+      border:1px solid #ccc;
+      font-size:15px;
     }
+
     #map { height:220px; border-radius:10px; margin-bottom:10px; }
+
     .preview-img {
-      width:100%; max-height:180px; border-radius:8px;
-      display:none; object-fit:cover; margin-bottom:10px;
+      width:100%;
+      max-height:200px;
+      border-radius:8px;
+      display:none;
+      object-fit:cover;
+      margin-bottom:10px;
     }
+
     .btn-save {
-      width:100%; padding:10px; border:none;
+      width:100%;
+      padding:10px;
+      border:none;
       background:linear-gradient(90deg,#667eea,#764ba2);
-      color:#fff; border-radius:8px; cursor:pointer;
+      color:#fff;
+      border-radius:8px;
+      cursor:pointer;
+      font-size:16px;
     }
+
     .modal-close {
-      position:absolute; top:10px; right:12px;
-      font-size:22px; cursor:pointer; color:#888;
+      position:absolute;
+      top:10px;
+      right:12px;
+      font-size:22px;
+      cursor:pointer;
+      color:#888;
     }
   </style>
 </head>
 
 <body>
 
-<!-- 🔹 Navbar -->
+<!-- Navbar -->
 <nav class="navbar">
-  <div><h1>Part-time Match (ร้านค้า)</h1></div>
+  <h2 style="margin:0;">Part-time Match (ร้านค้า)</h2>
+
   <div class="nav-right">
     <a href="matching.html">หน้าแรก</a>
     <a href="profile.html">โปรไฟล์</a>
@@ -79,15 +166,21 @@
     <a href="applications.html">ใบสมัคร</a>
     <a href="matching.html">การจับคู่</a>
     <a href="reviews.html">รีวิวร้าน</a>
+
+    <button id="logoutBtn" class="btn-logout">ออกจากระบบ</button>
   </div>
 </nav>
 
 <div class="container">
   <h2>💼 งานที่คุณประกาศ</h2>
 
-  <button id="addJobBtn" class="add-job" style="
+  <button id="addJobBtn" style="
     background:linear-gradient(90deg,#667eea,#764ba2);
-    color:#fff;padding:10px 18px;border:none;border-radius:10px;cursor:pointer;">
+    color:#fff;
+    padding:10px 18px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;">
     ➕ เพิ่มงานใหม่
   </button>
 
@@ -97,7 +190,7 @@
   </p>
 </div>
 
-<!-- 🔹 Modal เพิ่มงาน -->
+<!-- Modal -->
 <div id="jobModal" class="modal hidden">
   <div class="modal-content">
     <span id="closeModal" class="modal-close">&times;</span>
@@ -125,7 +218,7 @@
 
 <script>
 // ---------------------------
-// 🔐 ตรวจสอบการล็อกอินร้านค้า
+// 🔐 Session ตรวจสอบผู้ใช้ร้านค้า
 // ---------------------------
 const SESSION_SHOP = "pt_shop_session";
 const USERS_KEY = "pt_users";
@@ -137,19 +230,17 @@ if (!shopEmail) {
   window.location.href = "../auth.html";
 }
 
-// ดึงข้อมูลร้านเพื่อใช้ shop_name
 const users = JSON.parse(localStorage.getItem(USERS_KEY) || "[]");
 const shopInfo = users.find(u => u.email === shopEmail);
 
 let jobs = JSON.parse(localStorage.getItem(JOB_STORAGE)) || [];
 
 // ---------------------------
-// 🧭 UI Elements
+// UI Elements
 // ---------------------------
 const modal = document.getElementById("jobModal");
 const openBtn = document.getElementById("addJobBtn");
 const closeBtn = document.getElementById("closeModal");
-
 const jobListEl = document.getElementById("jobList");
 const emptyState = document.getElementById("emptyState");
 
@@ -157,21 +248,19 @@ let map, marker;
 let selectedImageBase64 = "";
 
 // ---------------------------
-// 📍 เปิด Modal
+// เปิด Modal
 // ---------------------------
 openBtn.onclick = () => {
-  modal.classList.remove("hidden");
   resetForm();
+  modal.classList.remove("hidden");
   setTimeout(initMap, 200);
 };
 
-// ---------------------------
-// ❌ ปิด Modal
-// ---------------------------
+// ปิด Modal
 closeBtn.onclick = () => modal.classList.add("hidden");
 
 // ---------------------------
-// 🖼 Preview Image
+// Preview Image
 // ---------------------------
 document.getElementById("jobImage").addEventListener("change", e => {
   const file = e.target.files[0];
@@ -188,12 +277,12 @@ document.getElementById("jobImage").addEventListener("change", e => {
 });
 
 // ---------------------------
-// 🗺️ Leaflet Map
+// Leaflet Map
 // ---------------------------
 function initMap() {
   if (!map) {
-    map = L.map('map').setView([13.7563, 100.5018], 12);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    map = L.map("map").setView([13.7563, 100.5018], 12);
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png").addTo(map);
 
     map.on("click", e => {
       if (marker) map.removeLayer(marker);
@@ -203,11 +292,12 @@ function initMap() {
         `Lat: ${e.latlng.lat.toFixed(5)}, Lng: ${e.latlng.lng.toFixed(5)}`;
     });
   }
+
   setTimeout(() => map.invalidateSize(), 200);
 }
 
 // ---------------------------
-// ✅ บันทึกงาน
+// บันทึกงาน
 // ---------------------------
 document.getElementById("saveJobBtn").onclick = () => {
   const title = document.getElementById("jobTitle").value.trim();
@@ -222,7 +312,6 @@ document.getElementById("saveJobBtn").onclick = () => {
     return;
   }
 
-  // ดึง lat/lng ถ้ามี
   let lat = null, lng = null;
   if (marker) {
     lat = marker.getLatLng().lat;
@@ -255,7 +344,7 @@ document.getElementById("saveJobBtn").onclick = () => {
 };
 
 // ---------------------------
-// 📌 แสดงงานทั้งหมดของร้าน
+// แสดงงานทั้งหมดของร้าน
 // ---------------------------
 function renderJobs() {
   const shopJobs = jobs.filter(j => j.shop_email === shopEmail);
@@ -278,7 +367,9 @@ function renderJobs() {
   });
 }
 
+// ---------------------------
 // รีเซ็ตฟอร์ม
+// ---------------------------
 function resetForm() {
   document.getElementById("jobTitle").value = "";
   document.getElementById("jobDesc").value = "";
@@ -290,7 +381,27 @@ function resetForm() {
   document.getElementById("previewImage").style.display = "none";
 }
 
+// ---------------------------
+// Logout
+// ---------------------------
+document.getElementById("logoutBtn").onclick = () => {
+  Swal.fire({
+    title: "ต้องการออกจากระบบ?",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonText: "ออกจากระบบ",
+    cancelButtonText: "ยกเลิก",
+  }).then(res => {
+    if (res.isConfirmed) {
+      localStorage.removeItem(SESSION_SHOP);
+      window.location.href = "../auth.html";
+    }
+  });
+};
+
+// ---------------------------
 // โหลดงานทันที
+// ---------------------------
 renderJobs();
 </script>
 

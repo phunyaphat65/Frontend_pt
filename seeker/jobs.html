@@ -373,7 +373,7 @@ document.getElementById("logoutBtn").onclick = () => {
   }).then(r => {
     if (r.isConfirmed) {
       localStorage.removeItem("pt_seeker_session");
-      location.href="../auth.html";
+      location.href="../index.html";
     }
   });
 };
